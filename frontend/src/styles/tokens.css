@@ -1,0 +1,250 @@
+:root {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  font-size: 13px;
+  font-weight: 400;
+  --page: #fbfcf9;
+  --surface: #ffffff;
+  --surface-subtle: #f4f6f1;
+  --sidebar: #f0f2ed;
+  --hover: #eaf0e9;
+  --selected: #e1e9df;
+  --text: #252e29;
+  --text-secondary: #526058;
+  --text-muted: #5c695f;
+  --line: #dce2da;
+  --line-strong: #c3cec2;
+  --accent: #35644c;
+  --accent-soft: #e9f1e7;
+  --primary-fill: #315a45;
+  --primary-text: #ffffff;
+  --positive: #31714d;
+  --negative: #9e4335;
+  --attention: #825910;
+  --information: #416884;
+  --error-bg: #fcf1ed;
+  --error-line: #e7c3b8;
+  --chart-grid: #e0e6dd;
+  --chart-guide: #9ba99c;
+  --chart-secondary: #82968a;
+  --chart-blue: #638096;
+  --risk-fill: #b96650;
+  --risk-track: #f0e7df;
+  --focus: #40799a;
+}
+:root[data-theme="dark"] {
+  --page: #181d1a;
+  --surface: #1e2520;
+  --surface-subtle: #222b24;
+  --sidebar: #141a16;
+  --hover: #29362b;
+  --selected: #303f31;
+  --text: #e6ece4;
+  --text-secondary: #bdc8bd;
+  --text-muted: #99aa9d;
+  --line: #354237;
+  --line-strong: #4b5e4d;
+  --accent: #afcfa5;
+  --accent-soft: #293c2b;
+  --primary-fill: #b2d0a8;
+  --primary-text: #182d1d;
+  --positive: #9bcba6;
+  --negative: #eea28e;
+  --attention: #dfbb73;
+  --information: #9fbcd4;
+  --error-bg: #352721;
+  --error-line: #694a3c;
+  --chart-grid: #354138;
+  --chart-guide: #7d9281;
+  --chart-secondary: #7f9a87;
+  --chart-blue: #99b6cc;
+  --risk-fill: #d3977b;
+  --risk-track: #40352c;
+  --focus: #a0c7e0;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  color: var(--text);
+  background: var(--page);
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+button {
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+button:not(:disabled),
+a,
+input,
+select,
+textarea {
+  transition:
+    border-color 120ms ease;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  outline-offset: 3px;
+}
+:focus-visible {
+  outline: 2px solid var(--focus);
+}
+input,
+select,
+textarea {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+}
+input,
+select {
+  min-height: 34px;
+  padding: 6px 10px;
+}
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--text-muted);
+}
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  min-height: auto;
+}
+textarea {
+  resize: vertical;
+}
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+h1 {
+  margin-bottom: 9px;
+  font-size: 28px;
+  letter-spacing: -1.05px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+h2 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.25px;
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+h3 {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+p {
+  line-height: 1.65;
+}
+svg {
+  flex-shrink: 0;
+}
+strong,
+b {
+  font-weight: 600;
+}
+small {
+  font-size: 11px;
+}
+code,
+pre {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 11px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.positive {
+  color: var(--positive);
+}
+.negative,
+.risk-text {
+  color: var(--negative);
+}
+.attention {
+  color: var(--attention);
+}
+.information {
+  color: var(--information);
+}
+.muted,
+.metadata {
+  color: var(--text-muted);
+}
+.metadata {
+  font-size: 11px;
+  line-height: 1.65;
+}
+.numeric,
+.identifier {
+  font-variant-numeric: tabular-nums;
+}
+.identifier {
+  font-weight: 500;
+}
+.eyebrow {
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,195 @@
+// Commercial
+Booked Revenue =
+COALESCE(CALCULATE(SUM(Orders[revenue]), KEEPFILTERS(Orders[status] <> "cancelled")),0)
+
+// Commercial
+Gross Margin =
+COALESCE(CALCULATE(SUM(Orders[gross_margin]), KEEPFILTERS(Orders[status] <> "cancelled")),0)
+
+// Commercial
+Margin Rate =
+DIVIDE([Gross Margin],[Booked Revenue])
+
+// Commercial
+Orders Received =
+COALESCE(COUNTROWS(Orders),0)
+
+// Commercial
+Booked Orders =
+CALCULATE(COUNTROWS(Orders),KEEPFILTERS(Orders[status] <> "cancelled"))
+
+// Commercial
+Average Basket =
+DIVIDE([Booked Revenue],[Booked Orders])
+
+// Commercial
+Delivered Orders =
+COALESCE(CALCULATE(COUNTROWS(Orders),KEEPFILTERS(Orders[status] = "delivered")),0)
+
+// Commercial
+Late Deliveries =
+COALESCE(CALCULATE(COUNTROWS(Orders),KEEPFILTERS(Orders[status] = "delivered"),Orders[late] = 1),0)
+
+// Commercial
+Delay Rate =
+DIVIDE([Late Deliveries],[Delivered Orders])
+
+// Commercial
+On Time Rate =
+IF([Delivered Orders]>0,1-[Delay Rate])
+
+// Commercial
+Open Orders =
+COALESCE(CALCULATE(COUNTROWS(Orders),KEEPFILTERS(Orders[status] = "open")),0)
+
+// Commercial
+Active Customers =
+COALESCE(DISTINCTCOUNT(Orders[customer_id]),0)
+
+// Commercial
+Booked Units =
+CALCULATE(SUM(Orders[units]),KEEPFILTERS(Orders[status] <> "cancelled"))
+
+// Commercial
+Warehouse Load =
+AVERAGE(Orders[warehouse_load])
+
+// Commercial
+Prior Period Revenue =
+VAR FirstDay=MIN('Date'[Date]) VAR LastDay=MAX('Date'[Date]) VAR Span=DATEDIFF(FirstDay,LastDay,DAY)+1 RETURN CALCULATE([Booked Revenue],REMOVEFILTERS('Date'),DATESBETWEEN('Date'[Date],FirstDay-Span,FirstDay-1))
+
+// Commercial
+Revenue Change =
+IF([Prior Period Revenue]<>0,DIVIDE([Booked Revenue]-[Prior Period Revenue],[Prior Period Revenue]))
+
+// Commercial
+Prior Month Revenue =
+CALCULATE([Booked Revenue],DATEADD('Date'[Date],-1,MONTH))
+
+// Commercial
+Revenue MoM =
+DIVIDE([Booked Revenue]-[Prior Month Revenue],[Prior Month Revenue])
+
+// Fulfillment
+Item Booked Revenue =
+CALCULATE(SUM(Items[line_revenue]),KEEPFILTERS(Items[status]<>"cancelled"))
+
+// Fulfillment
+Product Delivered Orders =
+CALCULATE(DISTINCTCOUNT(Items[order_id]),Items[status]="delivered")
+
+// Fulfillment
+Product Historical Delay =
+IF([Product Delivered Orders]>=20,CALCULATE(AVERAGE(Items[late]),Items[status]="delivered"))
+
+// Fulfillment
+Open Scored Orders =
+COALESCE(COUNTROWS('Open Risk'),0)
+
+// Fulfillment
+High Risk Open Orders =
+VAR Cutoff=MAX('Model'[threshold]) RETURN COALESCE(COUNTROWS(FILTER('Open Risk','Open Risk'[risk_probability]>=Cutoff)),0)
+
+// Fulfillment
+Risk Probability =
+MAX('Open Risk'[risk_probability])
+
+// Fulfillment
+Risk Threshold =
+MAX('Model'[threshold])
+
+// Fulfillment
+Risk ROC AUC =
+MAX('Model'[risk_auc])
+
+// Fulfillment
+Risk Recall =
+MAX('Model'[risk_recall])
+
+// Customer snapshot
+Segment Customers =
+COUNT(Customers[frequency])
+
+// Customer snapshot
+Segment Lifetime Revenue =
+SUM(Customers[monetary])
+
+// Customer snapshot
+Mean Recency Days =
+AVERAGE(Customers[recency])
+
+// Customer snapshot
+Mean Frequency =
+AVERAGE(Customers[frequency])
+
+// Customer snapshot
+Mean Customer Delay =
+AVERAGE(Customers[late_rate])
+
+// Planning
+Forecast Units =
+SUM(Forecast[units])
+
+// Planning
+Lower Heuristic =
+SUM(Forecast[lower])
+
+// Planning
+Upper Heuristic =
+SUM(Forecast[upper])
+
+// Planning
+One Day Test MAE =
+MAX('Model'[forecast_mae])
+
+// Planning
+Seasonal Baseline MAE =
+MAX('Model'[baseline_mae])
+
+// Planning
+Backtest Actual =
+SUM(Backtest[actual])
+
+// Planning
+Backtest Prediction =
+SUM(Backtest[prediction])
+
+// Planning
+Backtest Baseline =
+SUM(Backtest[seasonal_baseline])
+
+// Operations
+Monitoring Anomalies =
+COALESCE(COUNTROWS(Anomalies),0)
+
+// Operations
+Anomaly Score =
+MAX(Anomalies[anomaly_score])
+
+// Operations
+Audit Rows =
+SUM(Quality[Rows])
+
+// Provenance
+Snapshot =
+MAX(Orders[ordered_at])
+
+// Provenance
+Pipeline Run =
+SELECTEDVALUE('Model'[run_id])
+
+// Planning
+Forecast Model =
+SELECTEDVALUE('Model'[forecast_model])
+
+// Fulfillment
+Daily Load =
+AVERAGE('Daily Operations'[warehouse_load])
+
+// Fulfillment
+Daily Delay =
+AVERAGE('Daily Operations'[late_rate])
+
+// Commercial
+Observed Revenue =
+IF(COUNTROWS(Orders)>0,[Booked Revenue])

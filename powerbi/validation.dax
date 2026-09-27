@@ -1,0 +1,7 @@
+// Execute against the imported model. Compare to reports/powerbi/expected-values.json.
+EVALUATE
+UNION(
+    ROW("Scope","All history", "Revenue",[Booked Revenue], "Orders",[Orders Received], "Margin",[Gross Margin], "Delay",[Delay Rate], "AOV",[Average Basket], "Prior Revenue",[Prior Period Revenue], "Change",[Revenue Change]),
+    CALCULATETABLE(ROW("Scope","December 2025", "Revenue",[Booked Revenue], "Orders",[Orders Received], "Margin",[Gross Margin], "Delay",[Delay Rate], "AOV",[Average Basket], "Prior Revenue",[Prior Period Revenue], "Change",[Revenue Change]),DATESBETWEEN('Date'[Date],DATE(2025,12,1),DATE(2025,12,31))),
+    CALCULATETABLE(ROW("Scope","December North", "Revenue",[Booked Revenue], "Orders",[Orders Received], "Margin",[Gross Margin], "Delay",[Delay Rate], "AOV",[Average Basket], "Prior Revenue",[Prior Period Revenue], "Change",[Revenue Change]),DATESBETWEEN('Date'[Date],DATE(2025,12,1),DATE(2025,12,31)),'Region'[region]="North")
+)

@@ -1,0 +1,91 @@
+{
+  "captured_on": "2026-09-27",
+  "source": "Power BI Desktop, reopened saved Meridian.pbix; persisted Meridian theme",
+  "processing": "Only cropped application chrome; no report content altered. Each page inspected live before saving.",
+  "pages": [
+    {
+      "page": "01-executive-overview",
+      "original": "reports/powerbi/final/01-executive-overview.png",
+      "image": "docs/assets/powerbi/01-executive-overview.png",
+      "original_sha256": "b58af226dbf2faa1981859ab6abe495fd6aa993aa78e81539ad34d031f0c0009",
+      "sha256": "55cc114b1bbd94262b8e38be57036c75ca9feba0ba365455cbd5afc20dd5e1cd",
+      "crop": [
+        236,
+        111,
+        1238,
+        754
+      ],
+      "context": "Default unfiltered page"
+    },
+    {
+      "page": "02-fulfillment-investigation",
+      "original": "reports/powerbi/final/02-fulfillment-investigation.png",
+      "image": "docs/assets/powerbi/02-fulfillment-investigation.png",
+      "original_sha256": "bcf73f6c8819226e8cf8b00cbca2f02958f89e1199c0b604813b51b9f75fdf92",
+      "sha256": "cad1248b59c56ec63616062eafb7e03b46ba293110e3c0d8988f9809da27f334",
+      "crop": [
+        236,
+        111,
+        1238,
+        754
+      ],
+      "context": "Default unfiltered page"
+    },
+    {
+      "page": "03-customer-economics",
+      "original": "reports/powerbi/final/03-customer-economics.png",
+      "image": "docs/assets/powerbi/03-customer-economics.png",
+      "original_sha256": "253adbb1084bad817035fe6393a2cf58c03e8899bf811894bdcd2ceb832e780a",
+      "sha256": "59c52674a6be81a92da63feb9ca185d65e028c6f2c53cf0fa1c09071b51f7267",
+      "crop": [
+        236,
+        111,
+        1238,
+        754
+      ],
+      "context": "Default unfiltered page"
+    },
+    {
+      "page": "04-demand-planning",
+      "original": "reports/powerbi/final/04-demand-planning.png",
+      "image": "docs/assets/powerbi/04-demand-planning.png",
+      "original_sha256": "13efc2fff85bfa13ccafb47ec51d30be3b193d7e9ab84fb70c039913d373d329",
+      "sha256": "0c7749d93a8ac4281d5ae0d95ff30e8587fd056d6c00c4c06064307138ae253d",
+      "crop": [
+        236,
+        111,
+        1238,
+        754
+      ],
+      "context": "Default unfiltered page"
+    },
+    {
+      "page": "05-data-trust-monitoring",
+      "original": "reports/powerbi/final/05-data-trust-monitoring.png",
+      "image": "docs/assets/powerbi/05-data-trust-monitoring.png",
+      "original_sha256": "ee59f110f722e5ea7d185ae864300a95873f45001fe0e1e2254f2eb57dc5e96f",
+      "sha256": "7218457c58d27845f9ef2a3a17bc74cc677392ace27bc48823a4a839249fadaa",
+      "crop": [
+        236,
+        111,
+        1238,
+        754
+      ],
+      "context": "Default unfiltered page"
+    },
+    {
+      "page": "06-customer-detail",
+      "original": "reports/powerbi/final/06-customer-detail.png",
+      "image": "docs/assets/powerbi/06-customer-detail.png",
+      "original_sha256": "e0b8f832c69f8429cb35ee4d3f7e80d46069f41bb4e38e5bca1646b7732f6f75",
+      "sha256": "30df755e160e534f722d73f89aa893e7151b9103b6694d50debbb7a4734eb374",
+      "crop": [
+        236,
+        111,
+        1238,
+        754
+      ],
+      "context": "Customer 3206 via drillthrough"
+    }
+  ]
+}

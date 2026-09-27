@@ -1,0 +1,13 @@
+.venv
+.local
+.env
+frontend/node_modules
+frontend/dist
+artifacts
+data/raw
+data/curated
+data/exports
+reports
+__pycache__
+.pytest_cache
+.git

@@ -1,0 +1,1558 @@
+{
+  "name": "Meridian",
+  "compatibilityLevel": 1606,
+  "model": {
+    "culture": "en-US",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "en-US",
+    "expressions": [
+      {
+        "name": "ProjectRoot",
+        "kind": "m",
+        "expression": "\"C:/Shrey_Pandey/Vibecode/AI_Operational_Intelligence\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      },
+      {
+        "name": "ReadCsv",
+        "kind": "m",
+        "expression": "(file as text, types as list) as table => let\n    Source = Csv.Document(File.Contents(ProjectRoot & \"/data/exports/\" & file & \".csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Nulls = Table.ReplaceValue(Headers,\"\",null,Replacer.ReplaceValue,Table.ColumnNames(Headers)),\n    Typed = Table.TransformColumnTypes(Nulls,types,\"en-US\")\nin Typed"
+      },
+      {
+        "name": "SourceOrderFacts",
+        "kind": "m",
+        "expression": "ReadCsv(\"order_facts\", {{\"order_id\", Int64.Type}, {\"customer_id\", Int64.Type}, {\"ordered_at\", type date}, {\"promised_days\", Int64.Type}, {\"actual_days\", type number}, {\"warehouse_load\", type number}, {\"distance_km\", type number}, {\"expedited\", type logical}, {\"status\", type text}, {\"region\", type text}, {\"channel\", type text}, {\"revenue\", type number}, {\"gross_margin\", type number}, {\"units\", Int64.Type}, {\"line_count\", Int64.Type}, {\"supplier_lead_days\", type number}, {\"late\", type number}})"
+      },
+      {
+        "name": "SourceCustomers",
+        "kind": "m",
+        "expression": "ReadCsv(\"customers\", {{\"customer_id\", Int64.Type}, {\"region\", type text}, {\"channel\", type text}, {\"joined_at\", type date}})"
+      },
+      {
+        "name": "SourceSegments",
+        "kind": "m",
+        "expression": "ReadCsv(\"segments\", {{\"customer_id\", Int64.Type}, {\"last_order\", type date}, {\"frequency\", Int64.Type}, {\"monetary\", type number}, {\"late_rate\", type number}, {\"recency\", Int64.Type}, {\"cluster\", Int64.Type}, {\"segment\", type text}})"
+      },
+      {
+        "name": "SourceProducts",
+        "kind": "m",
+        "expression": "ReadCsv(\"products\", {{\"product_id\", Int64.Type}, {\"supplier_id\", Int64.Type}, {\"product_name\", type text}, {\"category\", type text}, {\"unit_cost\", type number}, {\"list_price\", type number}})"
+      },
+      {
+        "name": "SourceSuppliers",
+        "kind": "m",
+        "expression": "ReadCsv(\"suppliers\", {{\"supplier_id\", Int64.Type}, {\"supplier_name\", type text}, {\"lead_time_days\", Int64.Type}})"
+      },
+      {
+        "name": "SourceOrderItems",
+        "kind": "m",
+        "expression": "ReadCsv(\"order_items\", {{\"order_item_id\", Int64.Type}, {\"order_id\", Int64.Type}, {\"product_id\", Int64.Type}, {\"quantity\", Int64.Type}, {\"unit_price\", type number}, {\"discount\", type number}})"
+      },
+      {
+        "name": "SourceScoredOrders",
+        "kind": "m",
+        "expression": "ReadCsv(\"scored_orders\", {{\"order_id\", Int64.Type}, {\"customer_id\", Int64.Type}, {\"ordered_at\", type date}, {\"promised_days\", Int64.Type}, {\"actual_days\", type number}, {\"warehouse_load\", type number}, {\"distance_km\", type number}, {\"expedited\", type logical}, {\"status\", type text}, {\"region\", type text}, {\"channel\", type text}, {\"revenue\", type number}, {\"gross_margin\", type number}, {\"units\", Int64.Type}, {\"line_count\", Int64.Type}, {\"supplier_lead_days\", type number}, {\"late\", type number}, {\"risk_probability\", type number}, {\"risk_level\", type text}})"
+      },
+      {
+        "name": "SourceDailyOperations",
+        "kind": "m",
+        "expression": "ReadCsv(\"daily_operations\", {{\"day\", type date}, {\"region\", type text}, {\"orders\", Int64.Type}, {\"revenue\", type number}, {\"gross_margin\", type number}, {\"units\", Int64.Type}, {\"late_rate\", type number}, {\"warehouse_load\", type number}})"
+      },
+      {
+        "name": "SourceAnomalies",
+        "kind": "m",
+        "expression": "ReadCsv(\"anomalies\", {{\"day\", type date}, {\"region\", type text}, {\"orders\", Int64.Type}, {\"revenue\", type number}, {\"gross_margin\", type number}, {\"units\", Int64.Type}, {\"late_rate\", type number}, {\"warehouse_load\", type number}, {\"anomaly_score\", type number}, {\"is_anomaly\", type logical}, {\"main_deviation\", type text}, {\"deviation_z\", type number}, {\"period\", type text}})"
+      },
+      {
+        "name": "SourceForecast",
+        "kind": "m",
+        "expression": "ReadCsv(\"forecast\", {{\"day\", type date}, {\"units\", type number}, {\"lower\", type number}, {\"upper\", type number}})"
+      },
+      {
+        "name": "SourceForecastBacktest",
+        "kind": "m",
+        "expression": "ReadCsv(\"forecast_backtest\", {{\"day\", type date}, {\"actual\", type number}, {\"prediction\", type number}, {\"seasonal_baseline\", type number}})"
+      }
+    ],
+    "tables": [
+      {
+        "name": "Orders",
+        "columns": [
+          {
+            "name": "order_id",
+            "dataType": "int64",
+            "sourceColumn": "order_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "customer_id",
+            "dataType": "int64",
+            "sourceColumn": "customer_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "ordered_at",
+            "dataType": "dateTime",
+            "sourceColumn": "ordered_at",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy"
+          },
+          {
+            "name": "promised_days",
+            "dataType": "int64",
+            "sourceColumn": "promised_days",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "actual_days",
+            "dataType": "double",
+            "sourceColumn": "actual_days",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "warehouse_load",
+            "dataType": "double",
+            "sourceColumn": "warehouse_load",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "distance_km",
+            "dataType": "double",
+            "sourceColumn": "distance_km",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "expedited",
+            "dataType": "boolean",
+            "sourceColumn": "expedited",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "status",
+            "dataType": "string",
+            "sourceColumn": "status",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "region",
+            "dataType": "string",
+            "sourceColumn": "region",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "channel",
+            "dataType": "string",
+            "sourceColumn": "channel",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "revenue",
+            "dataType": "double",
+            "sourceColumn": "revenue",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "gross_margin",
+            "dataType": "double",
+            "sourceColumn": "gross_margin",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "units",
+            "dataType": "int64",
+            "sourceColumn": "units",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "line_count",
+            "dataType": "int64",
+            "sourceColumn": "line_count",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "supplier_lead_days",
+            "dataType": "double",
+            "sourceColumn": "supplier_lead_days",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "late",
+            "dataType": "double",
+            "sourceColumn": "late",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Orders",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "SourceOrderFacts"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Booked Revenue",
+            "expression": "COALESCE(CALCULATE(SUM(Orders[revenue]), KEEPFILTERS(Orders[status] <> \"cancelled\")),0)",
+            "formatString": "\"â‚¹\" #,0.00;(\"â‚¹\" #,0.00);\"â‚¹\" 0.00",
+            "displayFolder": "Commercial",
+            "description": "Booked Revenue"
+          },
+          {
+            "name": "Gross Margin",
+            "expression": "COALESCE(CALCULATE(SUM(Orders[gross_margin]), KEEPFILTERS(Orders[status] <> \"cancelled\")),0)",
+            "formatString": "\"â‚¹\" #,0.00;(\"â‚¹\" #,0.00);\"â‚¹\" 0.00",
+            "displayFolder": "Commercial",
+            "description": "Gross Margin"
+          },
+          {
+            "name": "Margin Rate",
+            "expression": "DIVIDE([Gross Margin],[Booked Revenue])",
+            "formatString": "0.0%",
+            "displayFolder": "Commercial",
+            "description": "Margin Rate"
+          },
+          {
+            "name": "Orders Received",
+            "expression": "COALESCE(COUNTROWS(Orders),0)",
+            "formatString": "#,0",
+            "displayFolder": "Commercial",
+            "description": "Orders Received"
+          },
+          {
+            "name": "Booked Orders",
+            "expression": "CALCULATE(COUNTROWS(Orders),KEEPFILTERS(Orders[status] <> \"cancelled\"))",
+            "formatString": "#,0",
+            "displayFolder": "Commercial",
+            "description": "Booked Orders"
+          },
+          {
+            "name": "Average Basket",
+            "expression": "DIVIDE([Booked Revenue],[Booked Orders])",
+            "formatString": "\"â‚¹\" #,0.00;(\"â‚¹\" #,0.00);\"â‚¹\" 0.00",
+            "displayFolder": "Commercial",
+            "description": "Average Basket"
+          },
+          {
+            "name": "Delivered Orders",
+            "expression": "COALESCE(CALCULATE(COUNTROWS(Orders),KEEPFILTERS(Orders[status] = \"delivered\")),0)",
+            "formatString": "#,0",
+            "displayFolder": "Commercial",
+            "description": "Delivered Orders"
+          },
+          {
+            "name": "Late Deliveries",
+            "expression": "COALESCE(CALCULATE(COUNTROWS(Orders),KEEPFILTERS(Orders[status] = \"delivered\"),Orders[late] = 1),0)",
+            "formatString": "#,0",
+            "displayFolder": "Commercial",
+            "description": "Late Deliveries"
+          },
+          {
+            "name": "Delay Rate",
+            "expression": "DIVIDE([Late Deliveries],[Delivered Orders])",
+            "formatString": "0.0%",
+            "displayFolder": "Commercial",
+            "description": "Delay Rate"
+          },
+          {
+            "name": "On Time Rate",
+            "expression": "IF([Delivered Orders]>0,1-[Delay Rate])",
+            "formatString": "0.0%",
+            "displayFolder": "Commercial",
+            "description": "On Time Rate"
+          },
+          {
+            "name": "Open Orders",
+            "expression": "COALESCE(CALCULATE(COUNTROWS(Orders),KEEPFILTERS(Orders[status] = \"open\")),0)",
+            "formatString": "#,0",
+            "displayFolder": "Commercial",
+            "description": "Open Orders"
+          },
+          {
+            "name": "Active Customers",
+            "expression": "COALESCE(DISTINCTCOUNT(Orders[customer_id]),0)",
+            "formatString": "#,0",
+            "displayFolder": "Commercial",
+            "description": "Active Customers"
+          },
+          {
+            "name": "Booked Units",
+            "expression": "CALCULATE(SUM(Orders[units]),KEEPFILTERS(Orders[status] <> \"cancelled\"))",
+            "formatString": "#,0",
+            "displayFolder": "Commercial",
+            "description": "Booked Units"
+          },
+          {
+            "name": "Warehouse Load",
+            "expression": "AVERAGE(Orders[warehouse_load])",
+            "formatString": "0.0%",
+            "displayFolder": "Commercial",
+            "description": "Warehouse Load"
+          },
+          {
+            "name": "Prior Period Revenue",
+            "expression": "VAR FirstDay=MIN('Date'[Date]) VAR LastDay=MAX('Date'[Date]) VAR Span=DATEDIFF(FirstDay,LastDay,DAY)+1 RETURN CALCULATE([Booked Revenue],REMOVEFILTERS('Date'),DATESBETWEEN('Date'[Date],FirstDay-Span,FirstDay-1))",
+            "formatString": "\"â‚¹\" #,0.00;(\"â‚¹\" #,0.00);\"â‚¹\" 0.00",
+            "displayFolder": "Commercial",
+            "description": "Prior Period Revenue"
+          },
+          {
+            "name": "Revenue Change",
+            "expression": "IF([Prior Period Revenue]<>0,DIVIDE([Booked Revenue]-[Prior Period Revenue],[Prior Period Revenue]))",
+            "formatString": "+0.0%;-0.0%;0.0%",
+            "displayFolder": "Commercial",
+            "description": "Revenue Change"
+          },
+          {
+            "name": "Prior Month Revenue",
+            "expression": "CALCULATE([Booked Revenue],DATEADD('Date'[Date],-1,MONTH))",
+            "formatString": "\"â‚¹\" #,0.00;(\"â‚¹\" #,0.00);\"â‚¹\" 0.00",
+            "displayFolder": "Commercial",
+            "description": "Prior Month Revenue"
+          },
+          {
+            "name": "Revenue MoM",
+            "expression": "DIVIDE([Booked Revenue]-[Prior Month Revenue],[Prior Month Revenue])",
+            "formatString": "+0.0%;-0.0%;0.0%",
+            "displayFolder": "Commercial",
+            "description": "Revenue MoM"
+          },
+          {
+            "name": "Item Booked Revenue",
+            "expression": "CALCULATE(SUM(Items[line_revenue]),KEEPFILTERS(Items[status]<>\"cancelled\"))",
+            "formatString": "\"â‚¹\" #,0.00;(\"â‚¹\" #,0.00);\"â‚¹\" 0.00",
+            "displayFolder": "Fulfillment",
+            "description": "Item Booked Revenue"
+          },
+          {
+            "name": "Product Delivered Orders",
+            "expression": "CALCULATE(DISTINCTCOUNT(Items[order_id]),Items[status]=\"delivered\")",
+            "formatString": "#,0",
+            "displayFolder": "Fulfillment",
+            "description": "Product Delivered Orders"
+          },
+          {
+            "name": "Product Historical Delay",
+            "expression": "IF([Product Delivered Orders]>=20,CALCULATE(AVERAGE(Items[late]),Items[status]=\"delivered\"))",
+            "formatString": "0.0%",
+            "displayFolder": "Fulfillment",
+            "description": "Product Historical Delay"
+          },
+          {
+            "name": "Open Scored Orders",
+            "expression": "COALESCE(COUNTROWS('Open Risk'),0)",
+            "formatString": "#,0",
+            "displayFolder": "Fulfillment",
+            "description": "Open Scored Orders"
+          },
+          {
+            "name": "High Risk Open Orders",
+            "expression": "VAR Cutoff=MAX('Model'[threshold]) RETURN COALESCE(COUNTROWS(FILTER('Open Risk','Open Risk'[risk_probability]>=Cutoff)),0)",
+            "formatString": "#,0",
+            "displayFolder": "Fulfillment",
+            "description": "High Risk Open Orders"
+          },
+          {
+            "name": "Risk Probability",
+            "expression": "MAX('Open Risk'[risk_probability])",
+            "formatString": "0.0%",
+            "displayFolder": "Fulfillment",
+            "description": "Risk Probability"
+          },
+          {
+            "name": "Risk Threshold",
+            "expression": "MAX('Model'[threshold])",
+            "formatString": "0.0%",
+            "displayFolder": "Fulfillment",
+            "description": "Risk Threshold"
+          },
+          {
+            "name": "Risk ROC AUC",
+            "expression": "MAX('Model'[risk_auc])",
+            "formatString": "0.000",
+            "displayFolder": "Fulfillment",
+            "description": "Risk ROC AUC"
+          },
+          {
+            "name": "Risk Recall",
+            "expression": "MAX('Model'[risk_recall])",
+            "formatString": "0.0%",
+            "displayFolder": "Fulfillment",
+            "description": "Risk Recall"
+          },
+          {
+            "name": "Segment Customers",
+            "expression": "COUNT(Customers[frequency])",
+            "formatString": "#,0",
+            "displayFolder": "Customer snapshot",
+            "description": "Segment Customers"
+          },
+          {
+            "name": "Segment Lifetime Revenue",
+            "expression": "SUM(Customers[monetary])",
+            "formatString": "\"â‚¹\" #,0.00;(\"â‚¹\" #,0.00);\"â‚¹\" 0.00",
+            "displayFolder": "Customer snapshot",
+            "description": "Segment Lifetime Revenue"
+          },
+          {
+            "name": "Mean Recency Days",
+            "expression": "AVERAGE(Customers[recency])",
+            "formatString": "0.0",
+            "displayFolder": "Customer snapshot",
+            "description": "Mean Recency Days"
+          },
+          {
+            "name": "Mean Frequency",
+            "expression": "AVERAGE(Customers[frequency])",
+            "formatString": "0.0",
+            "displayFolder": "Customer snapshot",
+            "description": "Mean Frequency"
+          },
+          {
+            "name": "Mean Customer Delay",
+            "expression": "AVERAGE(Customers[late_rate])",
+            "formatString": "0.0%",
+            "displayFolder": "Customer snapshot",
+            "description": "Mean Customer Delay"
+          },
+          {
+            "name": "Forecast Units",
+            "expression": "SUM(Forecast[units])",
+            "formatString": "#,0.0",
+            "displayFolder": "Planning",
+            "description": "Forecast Units"
+          },
+          {
+            "name": "Lower Heuristic",
+            "expression": "SUM(Forecast[lower])",
+            "formatString": "#,0.0",
+            "displayFolder": "Planning",
+            "description": "Lower Heuristic"
+          },
+          {
+            "name": "Upper Heuristic",
+            "expression": "SUM(Forecast[upper])",
+            "formatString": "#,0.0",
+            "displayFolder": "Planning",
+            "description": "Upper Heuristic"
+          },
+          {
+            "name": "One Day Test MAE",
+            "expression": "MAX('Model'[forecast_mae])",
+            "formatString": "#,0.0",
+            "displayFolder": "Planning",
+            "description": "One Day Test MAE"
+          },
+          {
+            "name": "Seasonal Baseline MAE",
+            "expression": "MAX('Model'[baseline_mae])",
+            "formatString": "#,0.0",
+            "displayFolder": "Planning",
+            "description": "Seasonal Baseline MAE"
+          },
+          {
+            "name": "Backtest Actual",
+            "expression": "SUM(Backtest[actual])",
+            "formatString": "#,0.0",
+            "displayFolder": "Planning",
+            "description": "Backtest Actual"
+          },
+          {
+            "name": "Backtest Prediction",
+            "expression": "SUM(Backtest[prediction])",
+            "formatString": "#,0.0",
+            "displayFolder": "Planning",
+            "description": "Backtest Prediction"
+          },
+          {
+            "name": "Backtest Baseline",
+            "expression": "SUM(Backtest[seasonal_baseline])",
+            "formatString": "#,0.0",
+            "displayFolder": "Planning",
+            "description": "Backtest Baseline"
+          },
+          {
+            "name": "Monitoring Anomalies",
+            "expression": "COALESCE(COUNTROWS(Anomalies),0)",
+            "formatString": "#,0",
+            "displayFolder": "Operations",
+            "description": "Monitoring Anomalies"
+          },
+          {
+            "name": "Anomaly Score",
+            "expression": "MAX(Anomalies[anomaly_score])",
+            "formatString": "0.000",
+            "displayFolder": "Operations",
+            "description": "Anomaly Score"
+          },
+          {
+            "name": "Audit Rows",
+            "expression": "SUM(Quality[Rows])",
+            "formatString": "#,0",
+            "displayFolder": "Operations",
+            "description": "Audit Rows"
+          },
+          {
+            "name": "Snapshot",
+            "expression": "MAX(Orders[ordered_at])",
+            "formatString": "dd MMM yyyy",
+            "displayFolder": "Provenance",
+            "description": "Snapshot"
+          },
+          {
+            "name": "Pipeline Run",
+            "expression": "SELECTEDVALUE('Model'[run_id])",
+            "formatString": "",
+            "displayFolder": "Provenance",
+            "description": "Pipeline Run"
+          },
+          {
+            "name": "Forecast Model",
+            "expression": "SELECTEDVALUE('Model'[forecast_model])",
+            "formatString": "",
+            "displayFolder": "Planning",
+            "description": "Forecast Model"
+          },
+          {
+            "name": "Daily Load",
+            "expression": "AVERAGE('Daily Operations'[warehouse_load])",
+            "formatString": "0.0%",
+            "displayFolder": "Fulfillment",
+            "description": "Daily Load"
+          },
+          {
+            "name": "Daily Delay",
+            "expression": "AVERAGE('Daily Operations'[late_rate])",
+            "formatString": "0.0%",
+            "displayFolder": "Fulfillment",
+            "description": "Daily Delay"
+          },
+          {
+            "name": "Observed Revenue",
+            "expression": "IF(COUNTROWS(Orders)>0,[Booked Revenue])",
+            "formatString": "\"â‚¹\" #,0.00;(\"â‚¹\" #,0.00);\"â‚¹\" 0.00",
+            "displayFolder": "Commercial",
+            "description": "Booked revenue shown only where orders exist; prevents future calendar dates appearing as zero actuals."
+          }
+        ]
+      },
+      {
+        "name": "Customers",
+        "columns": [
+          {
+            "name": "customer_id",
+            "dataType": "int64",
+            "sourceColumn": "customer_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "region",
+            "dataType": "string",
+            "sourceColumn": "region",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "channel",
+            "dataType": "string",
+            "sourceColumn": "channel",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "joined_at",
+            "dataType": "dateTime",
+            "sourceColumn": "joined_at",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy"
+          },
+          {
+            "name": "last_order",
+            "dataType": "dateTime",
+            "sourceColumn": "last_order",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy"
+          },
+          {
+            "name": "frequency",
+            "dataType": "int64",
+            "sourceColumn": "frequency",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "monetary",
+            "dataType": "double",
+            "sourceColumn": "monetary",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "late_rate",
+            "dataType": "double",
+            "sourceColumn": "late_rate",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "recency",
+            "dataType": "int64",
+            "sourceColumn": "recency",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "cluster",
+            "dataType": "int64",
+            "sourceColumn": "cluster",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "segment",
+            "dataType": "string",
+            "sourceColumn": "segment",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Customers",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    C = SourceCustomers,\n    S = SourceSegments,\n    Joined = Table.NestedJoin(C,{\"customer_id\"},S,{\"customer_id\"},\"RFM\",JoinKind.LeftOuter),\n    Expanded = Table.ExpandTableColumn(Joined,\"RFM\",{\"last_order\",\"frequency\",\"monetary\",\"late_rate\",\"recency\",\"cluster\",\"segment\"})\nin Expanded"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Products",
+        "columns": [
+          {
+            "name": "product_id",
+            "dataType": "int64",
+            "sourceColumn": "product_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "supplier_id",
+            "dataType": "int64",
+            "sourceColumn": "supplier_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "product_name",
+            "dataType": "string",
+            "sourceColumn": "product_name",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "category",
+            "dataType": "string",
+            "sourceColumn": "category",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "unit_cost",
+            "dataType": "double",
+            "sourceColumn": "unit_cost",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "list_price",
+            "dataType": "double",
+            "sourceColumn": "list_price",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "supplier_name",
+            "dataType": "string",
+            "sourceColumn": "supplier_name",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "lead_time_days",
+            "dataType": "int64",
+            "sourceColumn": "lead_time_days",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Products",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    P = SourceProducts,\n    S = SourceSuppliers,\n    J = Table.NestedJoin(P,{\"supplier_id\"},S,{\"supplier_id\"},\"Supplier\",JoinKind.LeftOuter)\nin Table.ExpandTableColumn(J,\"Supplier\",{\"supplier_name\",\"lead_time_days\"})"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Items",
+        "columns": [
+          {
+            "name": "order_item_id",
+            "dataType": "int64",
+            "sourceColumn": "order_item_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "order_id",
+            "dataType": "int64",
+            "sourceColumn": "order_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "product_id",
+            "dataType": "int64",
+            "sourceColumn": "product_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "quantity",
+            "dataType": "int64",
+            "sourceColumn": "quantity",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "unit_price",
+            "dataType": "double",
+            "sourceColumn": "unit_price",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "discount",
+            "dataType": "double",
+            "sourceColumn": "discount",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "customer_id",
+            "dataType": "int64",
+            "sourceColumn": "customer_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "ordered_at",
+            "dataType": "dateTime",
+            "sourceColumn": "ordered_at",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy"
+          },
+          {
+            "name": "status",
+            "dataType": "string",
+            "sourceColumn": "status",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "late",
+            "dataType": "double",
+            "sourceColumn": "late",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "line_revenue",
+            "dataType": "double",
+            "sourceColumn": "line_revenue",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Items",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    I = SourceOrderItems,\n    O = Table.SelectColumns(Orders,{\"order_id\",\"customer_id\",\"ordered_at\",\"status\",\"late\"}),\n    J = Table.NestedJoin(I,{\"order_id\"},O,{\"order_id\"},\"Order\",JoinKind.Inner),\n    E = Table.ExpandTableColumn(J,\"Order\",{\"customer_id\",\"ordered_at\",\"status\",\"late\"}),\n    Revenue = Table.AddColumn(E,\"line_revenue\",each [quantity]*[unit_price]*(1-[discount]),type number)\nin Revenue"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Open Risk",
+        "columns": [
+          {
+            "name": "order_id",
+            "dataType": "int64",
+            "sourceColumn": "order_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "customer_id",
+            "dataType": "int64",
+            "sourceColumn": "customer_id",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "ordered_at",
+            "dataType": "dateTime",
+            "sourceColumn": "ordered_at",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy"
+          },
+          {
+            "name": "promised_days",
+            "dataType": "int64",
+            "sourceColumn": "promised_days",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "actual_days",
+            "dataType": "double",
+            "sourceColumn": "actual_days",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "warehouse_load",
+            "dataType": "double",
+            "sourceColumn": "warehouse_load",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "distance_km",
+            "dataType": "double",
+            "sourceColumn": "distance_km",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "expedited",
+            "dataType": "boolean",
+            "sourceColumn": "expedited",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "status",
+            "dataType": "string",
+            "sourceColumn": "status",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "region",
+            "dataType": "string",
+            "sourceColumn": "region",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "channel",
+            "dataType": "string",
+            "sourceColumn": "channel",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "revenue",
+            "dataType": "double",
+            "sourceColumn": "revenue",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "gross_margin",
+            "dataType": "double",
+            "sourceColumn": "gross_margin",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "units",
+            "dataType": "int64",
+            "sourceColumn": "units",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "line_count",
+            "dataType": "int64",
+            "sourceColumn": "line_count",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "supplier_lead_days",
+            "dataType": "double",
+            "sourceColumn": "supplier_lead_days",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "late",
+            "dataType": "double",
+            "sourceColumn": "late",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "risk_probability",
+            "dataType": "double",
+            "sourceColumn": "risk_probability",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "risk_level",
+            "dataType": "string",
+            "sourceColumn": "risk_level",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Open Risk",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let S = SourceScoredOrders in Table.SelectRows(S,each [status]=\"open\")"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Daily Operations",
+        "columns": [
+          {
+            "name": "day",
+            "dataType": "dateTime",
+            "sourceColumn": "day",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy"
+          },
+          {
+            "name": "region",
+            "dataType": "string",
+            "sourceColumn": "region",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "orders",
+            "dataType": "int64",
+            "sourceColumn": "orders",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "revenue",
+            "dataType": "double",
+            "sourceColumn": "revenue",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "gross_margin",
+            "dataType": "double",
+            "sourceColumn": "gross_margin",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "units",
+            "dataType": "int64",
+            "sourceColumn": "units",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "late_rate",
+            "dataType": "double",
+            "sourceColumn": "late_rate",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "warehouse_load",
+            "dataType": "double",
+            "sourceColumn": "warehouse_load",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Daily Operations",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "SourceDailyOperations"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Anomalies",
+        "columns": [
+          {
+            "name": "day",
+            "dataType": "dateTime",
+            "sourceColumn": "day",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy"
+          },
+          {
+            "name": "region",
+            "dataType": "string",
+            "sourceColumn": "region",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "orders",
+            "dataType": "int64",
+            "sourceColumn": "orders",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "revenue",
+            "dataType": "double",
+            "sourceColumn": "revenue",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "gross_margin",
+            "dataType": "double",
+            "sourceColumn": "gross_margin",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "units",
+            "dataType": "int64",
+            "sourceColumn": "units",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "late_rate",
+            "dataType": "double",
+            "sourceColumn": "late_rate",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "warehouse_load",
+            "dataType": "double",
+            "sourceColumn": "warehouse_load",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "anomaly_score",
+            "dataType": "double",
+            "sourceColumn": "anomaly_score",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "is_anomaly",
+            "dataType": "boolean",
+            "sourceColumn": "is_anomaly",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "main_deviation",
+            "dataType": "string",
+            "sourceColumn": "main_deviation",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "deviation_z",
+            "dataType": "double",
+            "sourceColumn": "deviation_z",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "period",
+            "dataType": "string",
+            "sourceColumn": "period",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Anomalies",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let S = SourceAnomalies in Table.SelectRows(S,each [period]=\"monitoring\" and [is_anomaly]=true)"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Forecast",
+        "columns": [
+          {
+            "name": "day",
+            "dataType": "dateTime",
+            "sourceColumn": "day",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy"
+          },
+          {
+            "name": "units",
+            "dataType": "double",
+            "sourceColumn": "units",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "lower",
+            "dataType": "double",
+            "sourceColumn": "lower",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "upper",
+            "dataType": "double",
+            "sourceColumn": "upper",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Forecast",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "SourceForecast"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Backtest",
+        "columns": [
+          {
+            "name": "day",
+            "dataType": "dateTime",
+            "sourceColumn": "day",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy"
+          },
+          {
+            "name": "actual",
+            "dataType": "double",
+            "sourceColumn": "actual",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "prediction",
+            "dataType": "double",
+            "sourceColumn": "prediction",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "seasonal_baseline",
+            "dataType": "double",
+            "sourceColumn": "seasonal_baseline",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Backtest",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "SourceForecastBacktest"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Date",
+        "columns": [
+          {
+            "name": "Date",
+            "dataType": "dateTime",
+            "sourceColumn": "Date",
+            "summarizeBy": "none",
+            "formatString": "dd MMM yyyy",
+            "isKey": true
+          },
+          {
+            "name": "Month",
+            "dataType": "string",
+            "sourceColumn": "Month",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Year",
+            "dataType": "int64",
+            "sourceColumn": "Year",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Date",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Start = List.Min(Orders[ordered_at]),\n    End = List.Max(Forecast[day]),\n    Dates = Table.FromList(List.Dates(Start,Duration.Days(End-Start)+1,#duration(1,0,0,0)),Splitter.SplitByNothing(),{\"Date\"}),\n    Typed = Table.TransformColumnTypes(Dates,{{\"Date\",type date}}),\n    Month = Table.AddColumn(Typed,\"Month\",each Date.ToText([Date],\"yyyy-MM\"),type text),\n    Year = Table.AddColumn(Month,\"Year\",each Date.Year([Date]),Int64.Type)\nin Year"
+            }
+          }
+        ],
+        "dataCategory": "Time"
+      },
+      {
+        "name": "Region",
+        "columns": [
+          {
+            "name": "region",
+            "dataType": "string",
+            "sourceColumn": "region",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Region",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "Table.Distinct(Table.SelectColumns(Customers,{\"region\"}))"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Model",
+        "columns": [
+          {
+            "name": "risk_model",
+            "dataType": "string",
+            "sourceColumn": "risk_model",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "threshold",
+            "dataType": "double",
+            "sourceColumn": "threshold",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "risk_auc",
+            "dataType": "double",
+            "sourceColumn": "risk_auc",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "risk_precision",
+            "dataType": "double",
+            "sourceColumn": "risk_precision",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "risk_recall",
+            "dataType": "double",
+            "sourceColumn": "risk_recall",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "forecast_model",
+            "dataType": "string",
+            "sourceColumn": "forecast_model",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "forecast_mae",
+            "dataType": "double",
+            "sourceColumn": "forecast_mae",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "baseline_mae",
+            "dataType": "double",
+            "sourceColumn": "baseline_mae",
+            "summarizeBy": "none",
+            "formatString": "#,0.00"
+          },
+          {
+            "name": "run_id",
+            "dataType": "string",
+            "sourceColumn": "run_id",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "created_at",
+            "dataType": "string",
+            "sourceColumn": "created_at",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Model",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    J = Json.Document(File.Contents(ProjectRoot & \"/artifacts/model_report.json\")),\n    T = Table.FromRecords({[risk_model=J[risk][selected], threshold=J[risk][threshold], risk_auc=J[risk][test][roc_auc], risk_precision=J[risk][test][precision], risk_recall=J[risk][test][recall], forecast_model=J[forecast][selected], forecast_mae=J[forecast][test][mae], baseline_mae=J[forecast][seasonal_baseline_test][mae], run_id=J[pipeline_run_id], created_at=J[created_at]]})\nin T"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Quality",
+        "columns": [
+          {
+            "name": "Check",
+            "dataType": "string",
+            "sourceColumn": "Check",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Rows",
+            "dataType": "int64",
+            "sourceColumn": "Rows",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Quality",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    J = Json.Document(File.Contents(ProjectRoot & \"/data/curated/quality_report.json\")),\n    Counts = Record.SelectFields(J,{\"duplicate_orders_removed\",\"load_defaulted_to_075\",\"invalid_orders_quarantined\",\"orders_without_valid_items_quarantined\",\"items_quarantined\",\"loaded_orders\",\"loaded_items\"}),\n    T = Record.ToTable(Counts),\n    N = Table.RenameColumns(T,{{\"Name\",\"Check\"},{\"Value\",\"Rows\"}})\nin Table.TransformColumnTypes(N,{{\"Rows\",Int64.Type}})"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Lineage",
+        "columns": [
+          {
+            "name": "Dataset",
+            "dataType": "string",
+            "sourceColumn": "Dataset",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "SHA256",
+            "dataType": "string",
+            "sourceColumn": "SHA256",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Lineage",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let J=Json.Document(File.Contents(ProjectRoot & \"/data/curated/quality_report.json\")) in Table.RenameColumns(Record.ToTable(J[raw_sha256]),{{\"Name\",\"Dataset\"},{\"Value\",\"SHA256\"}})"
+            }
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "35cdea6d-d78f-55dd-b70d-0abcdca83027",
+        "fromTable": "Orders",
+        "fromColumn": "ordered_at",
+        "toTable": "Date",
+        "toColumn": "Date",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "bb07be13-d6f3-51d3-bd0d-395fbb97d884",
+        "fromTable": "Items",
+        "fromColumn": "ordered_at",
+        "toTable": "Date",
+        "toColumn": "Date",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "104a9a23-92fc-59bc-b19f-1edb4059ee81",
+        "fromTable": "Open Risk",
+        "fromColumn": "ordered_at",
+        "toTable": "Date",
+        "toColumn": "Date",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "c24759fd-07d2-513f-9ba6-62ccac909965",
+        "fromTable": "Daily Operations",
+        "fromColumn": "day",
+        "toTable": "Date",
+        "toColumn": "Date",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "fd1fb6e9-6cc9-56a7-b7b3-9fe2648422b3",
+        "fromTable": "Anomalies",
+        "fromColumn": "day",
+        "toTable": "Date",
+        "toColumn": "Date",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "7967c5cc-22ac-5450-8e41-4bbf2c8c89c3",
+        "fromTable": "Forecast",
+        "fromColumn": "day",
+        "toTable": "Date",
+        "toColumn": "Date",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "be893857-3667-5981-a7c2-ebc46283e251",
+        "fromTable": "Backtest",
+        "fromColumn": "day",
+        "toTable": "Date",
+        "toColumn": "Date",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "ae999419-b9bc-5ab1-ac6d-0a13cde77d89",
+        "fromTable": "Orders",
+        "fromColumn": "customer_id",
+        "toTable": "Customers",
+        "toColumn": "customer_id",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "3fa0a985-85be-5230-a344-4c77e6a71474",
+        "fromTable": "Items",
+        "fromColumn": "customer_id",
+        "toTable": "Customers",
+        "toColumn": "customer_id",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "b12fec11-f1fa-5a52-9d52-bc1f95b94780",
+        "fromTable": "Open Risk",
+        "fromColumn": "customer_id",
+        "toTable": "Customers",
+        "toColumn": "customer_id",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "644368a9-6b3f-5b3a-a82a-97e19ed4edeb",
+        "fromTable": "Customers",
+        "fromColumn": "region",
+        "toTable": "Region",
+        "toColumn": "region",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "5768fe9f-514c-504e-9b47-2ba196952690",
+        "fromTable": "Daily Operations",
+        "fromColumn": "region",
+        "toTable": "Region",
+        "toColumn": "region",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "ef99bda6-9625-5177-bba6-4767c92c99c7",
+        "fromTable": "Anomalies",
+        "fromColumn": "region",
+        "toTable": "Region",
+        "toColumn": "region",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "4d7aebca-ed21-5f48-b50a-2388d80b2135",
+        "fromTable": "Items",
+        "fromColumn": "product_id",
+        "toTable": "Products",
+        "toColumn": "product_id",
+        "fromCardinality": "many",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      }
+    ],
+    "annotations": [
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,2 @@
+# Optional report authoring/schema QA only; application dependencies are unchanged.
+jsonschema==4.26.0

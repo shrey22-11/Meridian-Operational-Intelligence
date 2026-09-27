@@ -1,0 +1,36 @@
+{
+  "name": "Meridian.json",
+  "dataColors": [
+    "#35644C",
+    "#688DAA",
+    "#9E4335",
+    "#825910",
+    "#8E9A78",
+    "#776C98"
+  ],
+  "background": "#FBFCF9",
+  "foreground": "#252E29",
+  "tableAccent": "#35644C",
+  "textClasses": {
+    "title": {
+      "fontFace": "Segoe UI",
+      "fontSize": 13,
+      "color": "#252E29"
+    },
+    "label": {
+      "fontFace": "Segoe UI",
+      "fontSize": 11,
+      "color": "#526058"
+    },
+    "callout": {
+      "fontFace": "Segoe UI",
+      "fontSize": 28,
+      "color": "#252E29"
+    },
+    "header": {
+      "fontFace": "Segoe UI",
+      "fontSize": 12,
+      "color": "#252E29"
+    }
+  }
+}

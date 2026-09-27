@@ -1,0 +1,2 @@
+EVALUATE
+ROW("Open Scored Orders",[Open Scored Orders],"High Risk",[High Risk Open Orders],"Threshold",[Risk Threshold],"ROC AUC",[Risk ROC AUC],"Recall",[Risk Recall],"Forecast Units",[Forecast Units],"Test MAE",[One Day Test MAE],"Baseline MAE",[Seasonal Baseline MAE],"Anomalies",[Monitoring Anomalies],"Customers",[Segment Customers],"Customer Revenue",[Segment Lifetime Revenue],"Item Revenue",[Item Booked Revenue])
