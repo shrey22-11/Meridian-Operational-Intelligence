@@ -24,7 +24,7 @@ def psycopg_url(value: str):
 
 
 engine = create_engine(psycopg_url(settings.database_url), pool_pre_ping=True, pool_size=5,
-                       connect_args={"connect_timeout": 5, "options": "-c statement_timeout=15000"})
+                       connect_args={"connect_timeout": 5})
 
 
 @contextmanager
@@ -36,6 +36,9 @@ def read_connection():
             with conn.begin():
                 stage = "read_only"
                 conn.execute(text("SET TRANSACTION READ ONLY"))
+                # Transaction-local settings work through Neon's pooler; startup
+                # options are rejected and session settings can leak across users.
+                conn.execute(text("SET LOCAL statement_timeout = '15s'"))
                 stage = "query"
                 yield conn
     except SQLAlchemyError as exc:
