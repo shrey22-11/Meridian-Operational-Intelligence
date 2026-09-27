@@ -5,14 +5,18 @@ export class ApiError extends Error {
   }
 }
 
+// Public backend origin only. Empty keeps the existing local Vite proxy workflow.
+const apiOrigin = (import.meta.env?.VITE_API_BASE_URL || "").replace(/\/+$/, "");
+export const apiUrl = (path) => `${apiOrigin}/api/${path}`;
+
 export async function api(path, options = {}) {
   let response;
   try {
-    response = await fetch(`/api/${path}`, options);
+    response = await fetch(apiUrl(path), options);
   } catch (error) {
     if (error.name === "AbortError") throw error;
     throw new ApiError(
-      "The analytics service could not be reached. Check that the local backend is running.",
+      "The analytics service could not be reached. Please try again shortly.",
       0,
     );
   }

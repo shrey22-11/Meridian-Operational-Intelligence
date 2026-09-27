@@ -5,6 +5,7 @@ import {
   RotateCw,
   CircleAlert,
 } from "lucide-react";
+import { apiUrl } from "../lib/api";
 
 export function Section({
   title,
@@ -118,7 +119,7 @@ export function ExportLink({ dataset, children = "Export CSV" }) {
   return (
     <a
       className="button quiet"
-      href={`/api/exports/${dataset}`}
+      href={apiUrl(`exports/${dataset}`)}
       title="Download the complete dataset; screen filters are not applied to exports."
       download
     >
