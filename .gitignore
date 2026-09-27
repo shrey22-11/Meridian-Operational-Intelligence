@@ -13,4 +13,5 @@ data/curated/
 data/exports/
 artifacts/
 reports/
+runtime-manifest.json
 *.log

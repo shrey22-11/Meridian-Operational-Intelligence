@@ -21,3 +21,6 @@ dependencies = [
 
 [tool.vercel]
 entrypoint = "backend.app.main:app"
+
+[tool.vercel.scripts]
+build = "python -m scripts.provision_runtime"
