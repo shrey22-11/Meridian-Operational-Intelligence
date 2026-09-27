@@ -13,7 +13,7 @@ from backend.app.db import records
 from backend.app.schemas import OrderScenario,ChatRequest
 from analytics import service
 from ml.service import predict_order,model_report,artifact_records
-from ai.analyst import chat
+from ai.service import chat
 
 logger=logging.getLogger("meridian")
 app=FastAPI(title="Meridian Operational Intelligence",version="1.0.0",
@@ -49,7 +49,7 @@ def health():
     records("SELECT 1 AS ready")
     return {"status":"ok","database":"connected","models_ready":(ROOT/"artifacts/model_report.json").exists(),
         "knowledge_ready":(ROOT/"artifacts/knowledge.joblib").exists(),"ai_provider":settings.ai_provider,
-        "ai_model":settings.ollama_model if settings.ai_provider=="ollama" else settings.openai_model if settings.ai_provider=="openai" else None,
+        "ai_model":settings.ollama_model if settings.ai_provider=="ollama" else settings.openai_model if settings.ai_provider=="openai" else settings.groq_model if settings.ai_provider=="groq" else None,
         "source":"synthetic","snapshot":"2025-12-31"}
 
 

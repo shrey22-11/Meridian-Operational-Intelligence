@@ -1,4 +1,5 @@
 from pathlib import Path
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -11,6 +12,8 @@ class Settings(BaseSettings):
     ollama_model: str = "qwen2.5:7b"
     openai_api_key: str = ""
     openai_model: str = "gpt-4.1-mini"
+    groq_api_key: SecretStr = SecretStr("")
+    groq_model: str = "openai/gpt-oss-20b"
     allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     model_config = SettingsConfigDict(env_file=ROOT / ".env", extra="ignore")
 
