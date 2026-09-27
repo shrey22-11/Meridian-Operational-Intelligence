@@ -1,2 +1,23 @@
+[project]
+name = "meridian-operational-intelligence"
+version = "1.0.0"
+description = "AI-driven operational intelligence platform"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi==0.115.12",
+    "uvicorn==0.34.2",
+    "sqlalchemy==2.0.41",
+    "psycopg[binary]==3.2.9",
+    "pandas==2.2.3",
+    "numpy==2.2.6",
+    "scikit-learn==1.6.1",
+    "scipy==1.15.3",
+    "matplotlib==3.10.3",
+    "joblib==1.5.1",
+    "pydantic-settings==2.9.1",
+    "httpx==0.28.1",
+    "openai>=1.82.0,<3",
+]
+
 [tool.vercel]
 entrypoint = "backend.app.main:app"
