@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse,FileResponse
 from sqlalchemy.exc import SQLAlchemyError
 from backend.app.config import ROOT,settings
 from backend.app.db import records
+from backend.app.db_diagnostics import database_diagnostic
 from backend.app.schemas import OrderScenario,ChatRequest
 from analytics import service
 from ml.service import predict_order,model_report,artifact_records
@@ -24,7 +25,7 @@ app.add_middleware(CORSMiddleware,allow_origins=settings.allowed_origins.split("
 
 @app.exception_handler(SQLAlchemyError)
 async def database_error(request:Request,exc:SQLAlchemyError):
-    logger.error("Database operation failed: %s",type(exc).__name__)
+    logger.error("Database operation failed: %s", json.dumps(database_diagnostic(exc)))
     return JSONResponse(status_code=503,content={"detail":"Database unavailable or uninitialized. Start PostgreSQL and run the data pipeline."})
 
 
