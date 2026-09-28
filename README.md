@@ -2,7 +2,9 @@
 
 A locally runnable retail fulfillment product connecting **PostgreSQL → Python ETL → statistics → ML → React analytics → a tool-using AI analyst**. It answers what changed, where to investigate, which open orders are at risk, and what demand may look like next.
 
-**All business records are synthetic.** The snapshot ends on **31 December 2025**, currency **INR**. No Git commits, remote repositories, GitHub Actions, or cloud deployments are needed.
+**[Live synthetic-data demo](https://meridian-operational-intelligence.pages.dev)** · **[GitHub repository](https://github.com/shrey22-11/Meridian-Operational-Intelligence)**
+
+**All business records are synthetic.** The snapshot ends on **31 December 2025**, currency **INR**. Local setup remains available; the public demo runs on free-tier services.
 
 ## Project Overview
 
@@ -11,6 +13,8 @@ Meridian is a single-business internal analytics application. Its database, pipe
 ![Meridian operational overview](docs/assets/app/overview.png)
 
 **Verified locally on Windows, 27 September 2026:** 35 Python tests, 3 frontend unit tests, 8 final browser tests, 569 source reconciliation checks and 262 Power BI engine checks passed. The saved report reopened with its theme intact. A cold-start Ollama failure recovered on retry; numerical prose can be withheld by the evidence guard. See the [final handoff record](docs/handoff.md) for the precise scope and limitations.
+
+**Verified public demo, 29 September 2026:** the six React workspaces loaded through Cloudflare Pages and Vercel Preview; Scenario Lab returned a saved-model prediction. The AI Analyst reached Groq and returned database/policy evidence. Its evidence guard withheld generated prose on the fresh questions, as designed when an explanation fails validation. The previously verified backend suite had 99 passing tests; it was not rerun for this documentation update.
 
 ## Business Problem
 
@@ -54,6 +58,8 @@ flowchart LR
 ```
 
 One FastAPI application, one relational database, one React client, and offline pipeline commands. No queues, microservices or unnecessary cloud dependencies.
+
+The public demo serves React from Cloudflare Pages, FastAPI from Vercel Preview, synthetic operational data from Neon PostgreSQL, and the existing SHA256-verified model/retrieval artifacts from a versioned GitHub Release. Groq Free is the hosted LLM provider; evidence-only mode remains available. ETL, training, PySpark execution and Power BI Desktop refresh remain local workflows. See [Cloudflare Pages setup](docs/cloudflare-pages.md) for the current API-origin configuration.
 
 ## Technology Stack
 
@@ -317,7 +323,7 @@ Earlier pipeline, training, EDA and Spark execution is documented in [the execut
 
 ## Screenshots and Demo
 
-The [five-minute demo walkthrough](docs/demo-walkthrough.md) covers the web application, actual AI evidence and Power BI. The [screenshot gallery](docs/screenshots.md) contains the final dashboard, scenario, policy answer and **all six Power BI pages**. These files live in `docs/assets/`, outside the generated-report ignore rules. No demo video or hosted deployment is claimed.
+The [live demo](https://meridian-operational-intelligence.pages.dev) covers the web application. The [five-minute demo walkthrough](docs/demo-walkthrough.md) covers the web application, actual AI evidence and Power BI. The [screenshot gallery](docs/screenshots.md) contains the final dashboard, scenario, policy answer and **all six Power BI pages**. These files live in `docs/assets/`, outside the generated-report ignore rules. No demo video or hosted Power BI report is claimed.
 
 ![Power BI executive overview with persisted Meridian theme](docs/assets/powerbi/01-executive-overview.png)
 
@@ -329,12 +335,12 @@ Raw full-window captures are retained locally in `reports/powerbi/final/`. The d
 - Revenue is booked merchandise value, not cash receipts. Delivered-only delay rates can look optimistic when slow orders remain open. The web overview defaults to the last 30 dataset days; Power BI opens on all history, so align filters before comparing numbers.
 - Scenario changes show model sensitivity, not proven intervention effects. Forecast bands are heuristic and multi-day coverage is unverified; anomalies require investigation.
 - Local AI latency and availability depend on Ollama/hardware. The observed first request after restart required a retry. Numeric/citation checks can withhold prose and cannot validate every qualitative claim; inspect the evidence.
-- Native Windows execution is verified. Docker configuration and the optional OpenAI integration are supplied, but neither was live-tested in this environment. No public authentication/authorization, cloud deployment or hosted Power BI sharing is included.
+- Native Windows execution is verified. Docker configuration and the optional OpenAI integration are supplied, but neither was live-tested in this environment. The public demo has no user authentication/authorization; it uses synthetic data and free-tier quotas. Power BI Desktop remains local.
 - The native quick-start was exercised on this development machine, not a second clean machine. Moving the Power BI sources requires updating `ProjectRoot` and refreshing from generated local artifacts.
 
-## Future Cloud Deployment
+## Free Public Deployment
 
-No cloud deployment is included. Later: host React static assets, deploy one FastAPI service, use managed PostgreSQL, store versioned model artifacts in object storage, run the pipeline on a schedule, and provide provider secrets through a secret manager. Add authentication/authorization, audit trails, rate limits, backup/restore testing, connection limits, migrations and observable model promotion before external exposure.
+The public [Cloudflare Pages site](https://meridian-operational-intelligence.pages.dev) calls a Vercel Preview API connected to Neon PostgreSQL; Groq Free provides hosted inference. The frontend contains only the public API origin, while database and Groq credentials stay backend-side. No paid service or automatic paid fallback is configured. The site currently points to a specific Vercel Preview deployment; its generated URL is subject to Vercel's deployment-retention policy, so this is a portfolio demo rather than a permanent availability guarantee. The local training, ETL, PySpark and Power BI workflows are not hosted.
 
 ## Future Improvements
 
