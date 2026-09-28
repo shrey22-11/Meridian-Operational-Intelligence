@@ -27,7 +27,7 @@ export default function Filters({ value, onChange, snapshot, action }) {
     setDraft(value);
     setError("");
   }, [value]);
-  if (!value) return null;
+  if (!value || !draft) return null;
   function apply(event) {
     event.preventDefault();
     if (!draft.start || !draft.end || draft.start > draft.end) {

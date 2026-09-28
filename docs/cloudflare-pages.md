@@ -4,17 +4,39 @@ Deploy the existing React/Vite application without changing the backend logic.
 
 | Setting | Value |
 | --- | --- |
-| Repository | shrey22-11/Meridian-Operational-Intelligence |
-| Deployment branch | deployment/free-cloud |
+| Source checkout | shrey22-11/Meridian-Operational-Intelligence, `deployment/free-cloud` |
 | Root directory | frontend |
 | Package manager | npm (package-lock.json) |
-| Build command | npm run build |
-| Output directory | dist |
+| Local build command | `npm run build` |
+| Uploaded output | `frontend/dist` |
 | Public build variable | VITE_API_BASE_URL |
+| Cloudflare Pages URL | https://meridian-operational-intelligence.pages.dev |
 
-Set VITE_API_BASE_URL to the verified backend origin (no trailing /api).
-The requested initial target is
-https://meridian-operational-intelligence-ivoe3wvdm.vercel.app.
+The current Pages project uses Direct Upload, not a Git-connected build. Build
+from the `deployment/free-cloud` checkout. The public Pages hostname is stable, but the Vercel
+Preview backend URL is immutable per redeployment. For each update, set
+`VITE_API_BASE_URL` to the verified, publicly accessible Vercel Preview origin
+(no trailing `/api`), build locally, then upload the contents of `frontend/dist`
+as a new Pages deployment. Direct Upload does not redeploy automatically on a
+Git push.
+
+The currently verified API origin is
+`https://meridian-operational-intelligence-1s9a4rjd3.vercel.app` (Vercel
+Preview deployment of backend commit `d145a51`). That exact Preview domain has
+a Vercel Deployment Protection exception; the project's broader protection
+setting remains enabled. `ALLOWED_ORIGINS` includes the exact Pages origin for
+the Preview branch. If the API target changes, check both access protection
+and CORS before uploading a new frontend build.
+
+PowerShell example from the repository root:
+
+```powershell
+$env:VITE_API_BASE_URL = "https://<verified-preview>.vercel.app"
+cd frontend
+npm ci
+npm run build
+```
+
 This variable is public and included in browser JavaScript. Never add Groq keys,
 database URLs, or Vercel protection bypass secrets to frontend variables.
 
@@ -29,7 +51,8 @@ set ALLOWED_ORIGINS on Preview only to include that exact HTTPS origin and redep
 the backend. Environment changes create a new immutable Preview URL; rebuild Pages
 with the newly verified backend URL if necessary. Do not promote Vercel Production.
 
-Use Cloudflare Pages Free without adding a payment method or paid services.
-Static frontend deployment does not provision databases, models, or inference.
-The project data remains synthetic. Deployment success and end-to-end testing
-must be recorded separately; this guide alone does not establish either.
+The Cloudflare Pages project was created on the Free plan without adding a
+payment method or paid services. Static frontend deployment does not provision
+databases, models, or inference. The project data remains synthetic. A Pages
+deployment marked successful confirms static assets were published; it does
+not establish that browser-to-backend requests passed CORS or access control.
