@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useScenario } from "../hooks/useScenario";
+import { AnimatedNumber, ProbabilityDial, JourneyLink } from "../components/Motion";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { post } from "../lib/api";
 import { money, percent, decimal, humanize } from "../lib/format";
@@ -68,35 +69,7 @@ const fields = [
   },
 ];
 export default function ScenarioLab() {
-  const [form, setForm] = useState(example);
-  const [baseline, setBaseline] = useState(null);
-  const [result, setResult] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-  const dirty =
-    result && JSON.stringify(form) !== JSON.stringify(result.inputs);
-  async function run(event) {
-    event?.preventDefault();
-    setBusy(true);
-    setError(null);
-    const inputs = { ...form };
-    try {
-      const prediction = await post("predictions/scenario", inputs);
-      const runResult = { ...prediction, inputs };
-      setResult(runResult);
-      setBaseline((current) => current || runResult);
-    } catch (error) {
-      setError(error);
-    } finally {
-      setBusy(false);
-    }
-  }
-  function reset() {
-    setBaseline(null);
-    setResult(null);
-    setForm(example);
-    setError(null);
-  }
+  const { form, update: setForm, result, baseline, busy, error, dirty, valid, run, reset, setDragging } = useScenario(example, fields);
   const change =
     result && baseline ? (result.probability - baseline.probability) * 100 : 0;
   const changedFields =
@@ -143,11 +116,11 @@ export default function ScenarioLab() {
             </button>
           </div>
           <form onSubmit={run}>
-            <fieldset disabled={busy}>
+            <fieldset>
               <legend className="sr-only">Scenario inputs</legend>
               <div className="scenario-fields">
                 {fields.map((field) => (
-                  <label key={field.name}>
+                  <label key={field.name} className="scenario-control">
                     <span>{field.label}</span>
                     <div className="unit-input">
                       <input
@@ -170,6 +143,19 @@ export default function ScenarioLab() {
                       />
                       <span>{field.unit}</span>
                     </div>
+                    <input type="range" aria-label={`${field.label} slider`}
+                      min={field.name === "revenue" ? 0 : field.min}
+                      max={field.name === "revenue" ? 1 : field.max}
+                      step={field.name === "revenue" ? 0.001 : field.step}
+                      value={field.name === "revenue" ? Math.log10(Math.max(1, form[field.name])) / 7 : form[field.name]}
+                      onPointerDown={(event) => { event.currentTarget.setPointerCapture?.(event.pointerId); setDragging(true); }}
+                      onPointerUp={() => setDragging(false)}
+                      onPointerCancel={() => setDragging(false)}
+                      onBlur={() => setDragging(false)}
+                      aria-valuetext={`${form[field.name]} ${field.unit}`}
+                      onChange={(event) => setForm({ ...form, [field.name]: field.name === "revenue" ? Math.round(10 ** (Number(event.target.value) * 7)) : Number(event.target.value) })}
+                    />
+                    <span className="slider-extents"><small>{field.min} {field.unit}</small><small>{field.max.toLocaleString("en-IN")} {field.unit}</small></span>
                     {field.help && <small>{field.help}</small>}
                   </label>
                 ))}
@@ -216,13 +202,13 @@ export default function ScenarioLab() {
               </label>
             </fieldset>
             <div className="scenario-submit">
-              <button className="button primary" disabled={busy}>
+              <button className="button primary" disabled={busy || !valid}>
                 {busy ? "Running model…" : "Run prediction"}
                 <ArrowRight size={15} />
               </button>
               <span>
                 {baseline
-                  ? "Your first run remains the baseline."
+                  ? "Auto-updates after editing · first run stays baseline."
                   : "The first run becomes your baseline."}
               </span>
             </div>
@@ -270,15 +256,15 @@ export default function ScenarioLab() {
             <>
               {dirty && (
                 <p className="notice-line">
-                  The result below uses the last submitted inputs. Run the model
-                  again to evaluate your edits.
+                  Previous inputs shown. The saved model updates after you pause editing; you can also run it manually.
                 </p>
               )}
+              <ProbabilityDial probability={result.probability} baseline={baseline.probability} label={result.risk_level} />
               <div className="prediction-comparison">
                 <div>
                   <span>Predicted delay probability</span>
                   <strong data-testid="scenario-probability">
-                    {percent(result.probability)}
+                    <AnimatedNumber value={result.probability} format={percent} />
                   </strong>
                   <span
                     className={
@@ -335,8 +321,8 @@ export default function ScenarioLab() {
                   Each recorded input compared with its training median, holding
                   others fixed.
                 </p>
-                {result.drivers.map((driver) => (
-                  <div key={driver.feature}>
+                {(result.drivers || []).map((driver) => (
+                  <div key={driver.feature} className="sensitivity-row"><span className="sensitivity-marker" aria-hidden="true" style={{width:`${Math.min(100, Math.abs(driver.probability_difference) * 100)}%`}} />
                     <span>{humanize(driver.feature)}</span>
                     <b
                       className={
@@ -370,6 +356,7 @@ export default function ScenarioLab() {
           )}
         </section>
       </div>
+      <JourneyLink href="#analyst" eyebrow="Continue the investigation">Ask the analyst for operational context</JourneyLink>
       <div className="definition-strip">
         <strong>Model simulation, not causal analysis</strong>
         <p>

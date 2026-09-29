@@ -1,9 +1,23 @@
+import { useState } from "react";
+import { AnimatedNumber, JourneyLink } from "../components/Motion";
 import { useResource } from "../hooks/useResource";
 import { PageHeading, Section, Resource, ExportLink } from "../components/UI";
 import { decimal, percent, number, modelName, dateLabel } from "../lib/format";
 import { ForecastChart, ImportanceChart } from "../components/Charts";
 import DataTable from "../components/DataTable";
 
+function ModelJourney({ risk }) {
+  const [stage, setStage] = useState(0);
+  const stages = [
+    ["Training", risk.split_periods.train, `${number(risk.split_sizes.train)} training records`],
+    ["Validation", risk.split_periods.validation, `${number(risk.split_sizes.validation)} validation records`],
+    ["Comparison", "Validation average precision", `${Object.keys(risk.validation_candidates).length} compared candidates`],
+    ["Selected model", modelName(risk.selected), "Chosen using validation performance"],
+    ["Held-out test", risk.split_periods.test, `${number(risk.split_sizes.test)} test records`],
+    ["Inference", "Saved classifier", `Review threshold: ${percent(risk.threshold)}`],
+  ];
+  return <div className="model-journey"><div role="group" aria-label="Model lifecycle">{stages.map(([label], i) => <button key={label} aria-pressed={stage === i} onFocus={() => setStage(i)} onMouseEnter={() => setStage(i)} onClick={() => setStage(i)}><span>0{i + 1}</span><strong>{label}</strong></button>)}</div><div className="model-stage-detail"><span>{stages[stage][0]}</span><strong>{stages[stage][1] || "Period unavailable"}</strong><p>{stages[stage][2]}</p></div></div>;
+}
 function ClassifierEvaluation({ risk }) {
   const candidates = Object.entries(risk.validation_candidates).map(
     ([name, validation]) => ({
@@ -15,6 +29,7 @@ function ClassifierEvaluation({ risk }) {
   );
   return (
     <>
+      <ModelJourney risk={risk} />
       <div className="model-summary">
         <div>
           <span className="eyebrow">01 / DELIVERY RISK</span>
@@ -23,7 +38,7 @@ function ClassifierEvaluation({ risk }) {
         </div>
         <div className="model-headline">
           <span>Held-out ROC AUC</span>
-          <strong>{decimal(risk.test.roc_auc, 3)}</strong>
+          <strong><AnimatedNumber value={risk.test.roc_auc} format={(value) => decimal(value, 3)} /></strong>
           <small>{risk.split_periods.test}</small>
         </div>
       </div>
@@ -168,7 +183,7 @@ export default function Models({ revision }) {
                 <div className="model-headline">
                   <span>One-day test MAE</span>
                   <strong>
-                    {decimal(report.forecast.test.mae)}
+                    <AnimatedNumber value={report.forecast.test.mae} format={decimal} />
                     <em>units</em>
                   </strong>
                   <small>
@@ -180,7 +195,7 @@ export default function Models({ revision }) {
               <div className="analysis-columns">
                 <Section
                   title="Demand outlook"
-                  description="Fourteen days after the observed snapshot"
+                  description="Forecast only · fourteen days after the observed snapshot"
                 >
                   <Resource resource={forecast} label="Demand forecast">
                     {(rows) => <ForecastChart rows={rows} />}
@@ -288,6 +303,7 @@ export default function Models({ revision }) {
           </>
         )}
       </Resource>
+      <JourneyLink href="#scenario" eyebrow="From model to decision">Explore the saved classifier in Scenario Lab</JourneyLink>
     </>
   );
 }

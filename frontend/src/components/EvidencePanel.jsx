@@ -1,3 +1,4 @@
+import { Reveal } from "./Motion";
 import { FileText, Database } from "lucide-react";
 import {
   money,
@@ -328,7 +329,7 @@ export default function EvidencePanel({
             ))}
           </div>
           {current && (
-            <div className="evidence-content">
+            <Reveal key={current.id} className="evidence-content">
               <div className="evidence-type">
                 {current.tool === "search_policies"
                   ? "RETRIEVED DOCUMENTS"
@@ -346,7 +347,7 @@ export default function EvidencePanel({
                 <h3>Result</h3>
                 <pre>{JSON.stringify(current.result, null, 2)}</pre>
               </details>
-            </div>
+            </Reveal>
           )}
         </>
       )}

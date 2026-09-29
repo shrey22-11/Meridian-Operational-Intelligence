@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { JourneyLink } from "../components/Motion";
 import { Search, X, ArrowUpRight } from "lucide-react";
 import { useResource } from "../hooks/useResource";
 import { query } from "../lib/api";
@@ -22,10 +24,13 @@ import { RegionFilter } from "../components/Filters";
 import DataTable from "../components/DataTable";
 
 export default function Operations({ revision }) {
+  const reduce = useReducedMotion();
+  const [preview, setPreview] = useState(null);
   const [view, setView] = useState("risk");
   const [region, setRegion] = useState("");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
+  const inspected = selected || preview;
   const detailPanel = useRef(null);
   useEffect(() => {
     if (!selected) return;
@@ -49,6 +54,7 @@ export default function Operations({ revision }) {
     setView(next);
     setSearch("");
     setSelected(null);
+    setPreview(null);
   }
   const riskRows = (risks.data || []).filter(
     (row) =>
@@ -95,6 +101,7 @@ export default function Operations({ revision }) {
             onChange={(value) => {
               setRegion(value);
               setSelected(null);
+              setPreview(null);
             }}
           />
         )}
@@ -122,7 +129,7 @@ export default function Operations({ revision }) {
         </span>
       </div>
       {view === "risk" && (
-        <div className={`queue-layout ${selected ? "with-detail" : ""}`}>
+        <div className={`queue-layout ${inspected ? "with-detail" : ""}`}>
           <Section
             title="Delivery risk"
             description="Saved classifier output · sorted by predicted delay probability"
@@ -136,6 +143,7 @@ export default function Operations({ revision }) {
                   rowKey="order_id"
                   selectedKey={selected?.order_id}
                   onRowSelect={setSelected}
+                  onRowPreview={setPreview}
                   initialSort={{ key: "risk_probability", direction: "desc" }}
                   emptyTitle="No open orders match these filters"
                   emptyDescription="Try another order ID or choose all regions. This queue contains the highest-scoring open orders, up to 100 per region selection."
@@ -187,56 +195,58 @@ export default function Operations({ revision }) {
               estimated probability, not a confirmed late delivery.
             </p>
           </Section>
-          {selected && (
-            <aside
-              className="order-detail"
+          {!inspected && <aside className="order-detail order-preview-empty"><span className="eyebrow">INSPECT A SIGNAL</span><h2>Every probability has context.</h2><p>Point to an order or focus its ID to preview the recorded inputs. Select it to pin the evidence.</p><span className="preview-crosshair" aria-hidden="true">＋</span></aside>}
+          {inspected && (
+            <motion.aside initial={reduce ? false : { opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .22 }}
+              className={`order-detail ${selected ? "pinned-detail" : "preview-detail"}`}
               ref={detailPanel}
               tabIndex={-1}
               aria-label="Selected order details"
             >
               <div className="detail-heading">
-                <span className="eyebrow">ORDER REVIEW</span>
+                <span className="eyebrow">{selected ? "PINNED ORDER" : "ORDER PREVIEW"}</span>
                 <button
                   className="icon-button"
                   aria-label="Close order details"
                   onClick={() => {
                     document
                       .querySelector(
-                        `[aria-label="Inspect order ${selected.order_id}"]`,
+                        `[aria-label="Inspect order ${inspected.order_id}"]`,
                       )
                       ?.focus();
                     setSelected(null);
+                    setPreview(null);
                   }}
                 >
                   <X size={16} />
                 </button>
               </div>
-              <h2>#{selected.order_id}</h2>
+              <h2>#{inspected.order_id}</h2>
               <p className="muted">
-                {selected.region} · {dateLabel(selected.ordered_at)}
+                {inspected.region} · {dateLabel(inspected.ordered_at)}
               </p>
               <div className="detail-score">
                 <span>Predicted delay probability</span>
-                <strong>{percent(selected.risk_probability)}</strong>
-                <span className="attention">{selected.risk_level}</span>
+                <strong>{percent(inspected.risk_probability)}</strong>
+                <span className="attention">{inspected.risk_level}</span>
               </div>
               <h3>Observed order inputs</h3>
               <dl className="definition-list">
                 <div>
                   <dt>Warehouse load</dt>
-                  <dd>{decimal(selected.warehouse_load, 2)}</dd>
+                  <dd>{decimal(inspected.warehouse_load, 2)}</dd>
                 </div>
                 <div>
                   <dt>Units ordered</dt>
-                  <dd>{number(selected.units)}</dd>
+                  <dd>{number(inspected.units)}</dd>
                 </div>
                 <div>
                   <dt>Booked value</dt>
-                  <dd>{money(selected.revenue)}</dd>
+                  <dd>{money(inspected.revenue)}</dd>
                 </div>
                 <div>
                   <dt>Customer ID</dt>
-                  <dd>{selected.customer_id}</dd>
+                  <dd>{inspected.customer_id}</dd>
                 </div>
               </dl>
               <p className="footnote">
@@ -246,7 +256,7 @@ export default function Operations({ revision }) {
               <a className="inline-link" href="#models">
                 View model evaluation <ArrowUpRight size={14} />
               </a>
-            </aside>
+            </motion.aside>
           )}
         </div>
       )}
@@ -356,6 +366,7 @@ export default function Operations({ revision }) {
           </p>
         </Section>
       )}
+      <JourneyLink href="#models" eyebrow="Understand the signal">Inspect model evaluation and uncertainty</JourneyLink>
     </>
   );
 }

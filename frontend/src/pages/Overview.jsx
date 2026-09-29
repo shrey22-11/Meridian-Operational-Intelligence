@@ -24,16 +24,18 @@ import {
 } from "../components/UI";
 import Filters from "../components/Filters";
 import DataTable from "../components/DataTable";
+import { AnimatedNumber, JourneyLink } from "../components/Motion";
+import RevenueBridge from "../components/RevenueBridge";
 import { RevenueChart } from "../components/Charts";
 
-function RegionalPerformance({ rows }) {
+function RegionalPerformance({ rows, selected, onSelect }) {
   const total = sum(rows, "revenue");
   if (!rows.length)
     return <Empty title="No regional activity for this selection" />;
   return (
     <div className="regional-list">
       {rows.map((row, index) => (
-        <div className="region-row" key={row.region}>
+        <button type="button" className="region-row" key={row.region} aria-pressed={selected === row.region} onClick={() => onSelect(selected === row.region ? "" : row.region)}>
           <span className="region-rank">0{index + 1}</span>
           <div className="region-main">
             <div>
@@ -50,12 +52,15 @@ function RegionalPerformance({ rows }) {
               <span>{percent(total ? row.revenue / total : null)} share</span>
             </small>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );
 }
 export default function Overview({ filters, setFilters, health, revision }) {
+  const [activeKpi, setActiveKpi] = useState("revenue");
+  const bridge = useResource("revenue-bridge", revision);
+  function focusKpi(key) { setActiveKpi(key); if (key === "revenue" || key === "orders") setMetric(key); }
   const [metric, setMetric] = useState("revenue");
   const params = query({
     start_date: filters?.start,
@@ -90,38 +95,38 @@ export default function Overview({ filters, setFilters, health, revision }) {
       />
       <Resource resource={metrics} label="Business metrics">
         {({ current: m, previous, revenue_change_pct }) => (
-          <div className="metrics-ledger">
-            <div className="primary-metric">
+          <div className="metrics-ledger pulse-ledger" data-active={activeKpi}>
+            <div className="primary-metric"><button className="metric-focus" aria-label="Focus revenue metric" aria-pressed={activeKpi === "revenue"} onFocus={() => focusKpi("revenue")} onMouseEnter={() => focusKpi("revenue")} onClick={() => focusKpi("revenue")}><span aria-hidden="true">↗</span></button>
               <span className="metric-label">
                 Net booked revenue <span>INR</span>
               </span>
-              <strong data-testid="revenue-value">{money(m.revenue)}</strong>
+              <strong data-testid="revenue-value"><AnimatedNumber value={m.revenue} format={money} /></strong>
               <Change value={revenue_change_pct} />
               <span className="metric-context">
                 Excludes cancelled orders; includes open bookings.
               </span>
             </div>
-            <div className="ledger-metric">
+            <div className="ledger-metric"><button className="metric-focus" aria-label="Focus orders metric" aria-pressed={activeKpi === "orders"} onFocus={() => focusKpi("orders")} onMouseEnter={() => focusKpi("orders")} onClick={() => focusKpi("orders")}><span aria-hidden="true">↗</span></button>
               <span className="metric-label">Orders received</span>
-              <strong>{number(m.orders)}</strong>
+              <strong><AnimatedNumber value={m.orders} format={number} /></strong>
               <Change value={delta(m.orders, previous.orders)} />
               <span className="metric-context">
                 {number(m.active_customers)} active customers
               </span>
             </div>
-            <div className="ledger-metric">
+            <div className="ledger-metric"><button className="metric-focus" aria-label="Focus margin metric" aria-pressed={activeKpi === "margin"} onFocus={() => focusKpi("margin")} onMouseEnter={() => focusKpi("margin")} onClick={() => focusKpi("margin")}><span aria-hidden="true">↗</span></button>
               <span className="metric-label">Gross margin</span>
-              <strong>{money(m.gross_margin)}</strong>
+              <strong><AnimatedNumber value={m.gross_margin} format={money} /></strong>
               <span className="metric-detail">
                 {percent(m.revenue ? m.gross_margin / m.revenue : null)}{" "}
                 <span>of booked revenue</span>
               </span>
               <span className="metric-context">Merchandise cost only</span>
             </div>
-            <div className="ledger-metric delivery-metric">
+            <div className="ledger-metric delivery-metric"><button className="metric-focus" aria-label="Focus delivery metric" aria-pressed={activeKpi === "delivery"} onFocus={() => focusKpi("delivery")} onMouseEnter={() => focusKpi("delivery")} onClick={() => focusKpi("delivery")}><span aria-hidden="true">↗</span></button>
               <span className="metric-label">On-time delivery</span>
               <strong>
-                {m.late_rate == null ? "—" : percent(1 - m.late_rate)}
+                <AnimatedNumber value={m.late_rate == null ? null : 1 - m.late_rate} format={percent} />
               </strong>
               <div className="delivery-track" aria-hidden="true">
                 <i
@@ -138,6 +143,7 @@ export default function Overview({ filters, setFilters, health, revision }) {
           </div>
         )}
       </Resource>
+      <p className="pulse-context">{activeKpi === "margin" ? "Margin reflects merchandise cost only. Revenue and orders remain the daily trend below." : activeKpi === "delivery" ? "On-time delivery covers completed orders only. Review open-order risk in the investigation queue." : `Explore ${metric} through time, then select a region to isolate its contribution.`}</p>
       <div className="overview-analysis">
         <Section
           title="Revenue & order activity"
@@ -171,13 +177,14 @@ export default function Overview({ filters, setFilters, health, revision }) {
           className="regional-section"
         >
           <Resource resource={analytics} label="Regional performance">
-            {(data) => <RegionalPerformance rows={data.regions} />}
+            {(data) => <RegionalPerformance rows={data.regions} selected={filters?.region} onSelect={(region) => setFilters({ ...filters, region })} />}
           </Resource>
           <a className="inline-link section-bottom-link" href="#analytics">
             Explore business performance <ArrowUpRight size={14} />
           </a>
         </Section>
       </div>
+      <Section title="What moved the business?" description="Monthly decomposition · independent of the filters above"><Resource resource={bridge} label="Monthly revenue bridge">{(data) => <RevenueBridge data={data} />}</Resource></Section>
       <div className="overview-lower">
         <Section
           title="Open orders to review"
@@ -267,6 +274,7 @@ export default function Overview({ filters, setFilters, health, revision }) {
           </a>
         </Section>
       </div>
+      <JourneyLink href="#operations" eyebrow="From pulse to priority">Investigate delivery risks and operational signals</JourneyLink>
       <div className="definition-strip">
         <strong>Reading this view</strong>
         <p>

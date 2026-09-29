@@ -16,7 +16,7 @@ export function useResource(path, revision = 0) {
       setState({ data: null, error: null, loading: false });
       return;
     }
-    setState({ data: null, error: null, loading: true });
+    setState((current) => ({ ...current, error: null, loading: true }));
     api(path, { signal: controller.signal })
       .then((data) => {
         if (!controller.signal.aborted)
@@ -24,7 +24,7 @@ export function useResource(path, revision = 0) {
       })
       .catch((error) => {
         if (!controller.signal.aborted)
-          setState({ data: null, error, loading: false });
+          setState((current) => ({ ...current, error, loading: false }));
       });
     return () => controller.abort();
   }, [path, revision, attempt]);

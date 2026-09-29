@@ -5,6 +5,7 @@ import { Skeleton, ErrorState } from "./components/UI";
 import { useResource } from "./hooks/useResource";
 import useAnalyst from "./hooks/useAnalyst";
 import { initialPeriod } from "./lib/format";
+import { MotionConfig, motion, useReducedMotion } from "motion/react";
 const Overview = lazy(() => import("./pages/Overview"));
 const Operations = lazy(() => import("./pages/Operations"));
 const Analytics = lazy(() => import("./pages/Analytics"));
@@ -16,6 +17,7 @@ function readPage() {
   return pages.some((page) => page.id === id) ? id : "overview";
 }
 export default function App() {
+  const reduce = useReducedMotion();
   const [page, setPage] = useState(readPage);
   const [revision, setRevision] = useState(0);
   const [filters, setFilters] = useState(null);
@@ -31,34 +33,53 @@ export default function App() {
       setFilters((current) => current || initialPeriod(health.data.snapshot));
   }, [health.data?.snapshot]);
   const shared = { revision, health: health.data, filters, setFilters };
+  const waitingForPeriod =
+    (page === "overview" || page === "analytics") &&
+    !filters &&
+    !health.error;
   return (
-    <Shell
-      page={page}
-      health={health}
-      onRefresh={() => setRevision((value) => value + 1)}
-    >
-      {health.error && (
-        <ErrorState
-          title="The local data service is unavailable"
-          error={health.error}
-          retry={health.retry}
-        />
-      )}
-      <WorkspaceBoundary
-        key={`${page}-${revision}`}
-        onRetry={() => setRevision((value) => value + 1)}
+    <MotionConfig reducedMotion="user">
+      <Shell
+        page={page}
+        health={health}
+        onRefresh={() => setRevision((value) => value + 1)}
       >
-        <Suspense fallback={<Skeleton rows={8} label="Loading workspace" />}>
-          {page === "overview" && <Overview {...shared} />}
-          {page === "operations" && <Operations {...shared} />}
-          {page === "analytics" && <Analytics {...shared} />}
-          {page === "models" && <Models {...shared} />}
-          {page === "scenario" && <ScenarioLab />}
-          {page === "analyst" && (
-            <Analyst health={health.data} analyst={analyst} />
+        {health.error && (
+          <ErrorState
+            title="The data service is unavailable"
+            error={health.error}
+            retry={health.retry}
+          />
+        )}
+        <WorkspaceBoundary
+          key={`${page}-${revision}`}
+          onRetry={() => setRevision((value) => value + 1)}
+        >
+          {waitingForPeriod ? (
+            <Skeleton rows={8} label="Loading business snapshot" />
+          ) : (
+            <motion.div
+              key={page}
+              initial={reduce ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22 }}
+            >
+              <Suspense
+                fallback={<Skeleton rows={8} label="Loading workspace" />}
+              >
+                {page === "overview" && <Overview {...shared} />}
+                {page === "operations" && <Operations {...shared} />}
+                {page === "analytics" && <Analytics {...shared} />}
+                {page === "models" && <Models {...shared} />}
+                {page === "scenario" && <ScenarioLab />}
+                {page === "analyst" && (
+                  <Analyst health={health.data} analyst={analyst} />
+                )}
+              </Suspense>
+            </motion.div>
           )}
-        </Suspense>
-      </WorkspaceBoundary>
-    </Shell>
+        </WorkspaceBoundary>
+      </Shell>
+    </MotionConfig>
   );
 }

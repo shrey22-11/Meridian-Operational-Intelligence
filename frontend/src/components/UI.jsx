@@ -6,6 +6,7 @@ import {
   CircleAlert,
 } from "lucide-react";
 import { apiUrl } from "../lib/api";
+import { Reveal } from "./Motion";
 
 export function Section({
   title,
@@ -16,7 +17,7 @@ export function Section({
   id,
 }) {
   return (
-    <section className={`section ${className}`} id={id}>
+    <Reveal as="section" className={`section ${className}`} id={id}>
       <div className="section-heading">
         <div>
           <h2>{title}</h2>
@@ -25,7 +26,7 @@ export function Section({
         {action}
       </div>
       {children}
-    </section>
+    </Reveal>
   );
 }
 export function PageHeading({ eyebrow, title, description, action }) {
@@ -86,7 +87,7 @@ export function Skeleton({ rows = 4, label = "Loading analysis" }) {
   );
 }
 export function Resource({ resource, children, label }) {
-  if (resource.loading) return <Skeleton label={label} />;
+  if (resource.loading && resource.data == null) return <Skeleton label={label} />;
   if (resource.error)
     return (
       <ErrorState
@@ -97,7 +98,10 @@ export function Resource({ resource, children, label }) {
     );
   if (resource.data == null)
     return <Empty title="This analysis is not available yet" />;
-  return children(resource.data);
+  return <div className={`resource-content ${resource.loading ? "is-refreshing" : ""}`} aria-busy={resource.loading}>
+    {resource.loading && <div className="refresh-notice" role="status">Updating selection · previous results shown</div>}
+    <div inert={resource.loading ? true : undefined}>{children(resource.data)}</div>
+  </div>;
 }
 export function Change({
   value,

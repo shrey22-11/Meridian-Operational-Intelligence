@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Empty } from "./UI";
+import { motion, useReducedMotion } from "motion/react";
 
 export default function DataTable({
   columns,
@@ -11,10 +12,13 @@ export default function DataTable({
   initialSort,
   rowKey,
   onRowSelect,
+  onRowPreview,
+  rowLabel = "Inspect order",
   selectedKey,
   compact = false,
   pageSize,
 }) {
+  const reduce = useReducedMotion();
   const [sort, setSort] = useState(initialSort || null);
   const [page, setPage] = useState(0);
   useEffect(() => setPage(0), [rows.length, sort]);
@@ -47,7 +51,7 @@ export default function DataTable({
   return (
     <>
       <div
-        className={`table-scroll ${compact ? "compact-table" : ""} ${columns.length <= 2 ? "narrow-table" : ""}`}
+        className={`table-scroll ${onRowPreview ? "operational-table" : ""} ${compact ? "compact-table" : ""} ${columns.length <= 2 ? "narrow-table" : ""}`}
         tabIndex={0}
         role="region"
         aria-label={caption}
@@ -96,22 +100,30 @@ export default function DataTable({
           </thead>
           <tbody>
             {visible.map((row, index) => {
-              const key = rowKey ? row[rowKey] : index;
+              const key = rowKey ? row[rowKey] : JSON.stringify(row);
               return (
-                <tr
+                <motion.tr
                   key={key}
+                  layout={reduce ? false : "position"}
+                  transition={{ duration: 0.22 }}
+                  onMouseEnter={() => onRowPreview?.(row)}
+                  onMouseLeave={() => onRowPreview?.(null)}
+                  onFocusCapture={() => onRowPreview?.(row)}
+                  onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) onRowPreview?.(null); }}
                   className={selectedKey === key ? "row-selected" : ""}
+                  aria-selected={selectedKey === key}
                 >
                   {columns.map((column, colIndex) => (
                     <td
                       key={column.key}
+                      data-label={column.label}
                       className={column.numeric ? "numeric" : ""}
                     >
                       {onRowSelect && colIndex === 0 ? (
                         <button
                           className="table-link"
                           onClick={() => onRowSelect(row)}
-                          aria-label={`Inspect order ${key}`}
+                          aria-label={`${rowLabel} ${key}`}
                         >
                           {column.render
                             ? column.render(row[column.key], row)
@@ -124,7 +136,7 @@ export default function DataTable({
                       )}
                     </td>
                   ))}
-                </tr>
+                </motion.tr>
               );
             })}
           </tbody>

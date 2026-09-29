@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, ArrowUpRight, RotateCcw } from "lucide-react";
 import { PageHeading, ErrorState } from "../components/UI";
-import EvidencePanel from "../components/EvidencePanel";
+import EvidencePanel, { toolLabels } from "../components/EvidencePanel";
+import { Reveal } from "../components/Motion";
 
 const questions = [
   {
@@ -79,7 +80,7 @@ export default function Analyst({ health, analyst }) {
       <PageHeading
         eyebrow="ANALYTICAL WORKSPACE"
         title="Ask Meridian"
-        description="Frame a business question. Inspect the reasoning and its sources."
+        description="Frame a business question. Inspect the answer and its sources."
         action={
           <button
             className="button quiet"
@@ -219,8 +220,7 @@ export default function Analyst({ health, analyst }) {
                   <div>
                     <strong>Analyst request in progress</strong>
                     <p>
-                      Waiting for the provider and completed tool results. Local
-                      model responses may take a moment.
+                      Waiting for the provider and completed tool results. Provider responses may take a moment.
                     </p>
                   </div>
                 </div>
@@ -233,8 +233,12 @@ export default function Analyst({ health, analyst }) {
                 />
               )}
               {active.result && (
-                <>
-                  <div className="result-label">
+                <Reveal key={active.id}>
+                  <div className="investigation-trail" aria-label="Returned evidence trail">
+                    <span className="eyebrow">RETURNED EVIDENCE · COMPLETED RESPONSE</span>
+                    <div>{active.result.evidence.map((entry, index) => <Reveal key={entry.id} delay={index * .045}><button onClick={() => selectEvidence(entry.id)} aria-pressed={evidenceId === entry.id}><span>{entry.id}</span><strong>{toolLabels[entry.tool] || entry.tool}</strong><small>{entry.result?.error ? "Tool returned an error" : entry.tool === "search_policies" ? "Retrieved policy" : "Returned tool result"}</small></button></Reveal>)}</div>
+                  </div>
+                  <div className={`result-label validation-${active.result.guard.status}`}>
                     <span>
                       {active.result.mode === "evidence"
                         ? "STRUCTURED EVIDENCE"
@@ -279,7 +283,7 @@ export default function Analyst({ health, analyst }) {
                     establish causation or verify every interpretation. Review
                     the source before acting.
                   </p>
-                </>
+                </Reveal>
               )}
             </div>
           )}

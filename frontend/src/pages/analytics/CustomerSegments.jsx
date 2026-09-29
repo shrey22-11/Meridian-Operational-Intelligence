@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { percent, sum, number, money, decimal } from "../../lib/format";
 import { Section, Resource } from "../../components/UI";
 import DataTable from "../../components/DataTable";
 
 export default function CustomerSegments({ segments }) {
+  const [selected, setSelected] = useState(null);
   return (
     <Section
       title="Customer segments"
@@ -13,7 +15,9 @@ export default function CustomerSegments({ segments }) {
           <>
             <div className="segment-composition">
               {rows.map((row, index) => (
-                <div
+                <button
+                  aria-pressed={selected === row.segment} onClick={() => setSelected(row.segment)}
+                  onFocus={() => setSelected(row.segment)}
                   key={row.segment}
                   style={{
                     flex: row.customers,
@@ -26,12 +30,13 @@ export default function CustomerSegments({ segments }) {
                     {percent(row.customers / sum(rows, "customers"))}
                   </strong>
                   <span>{row.segment}</span>
-                </div>
+                </button>
               ))}
             </div>
             <DataTable
               caption="RFM customer segment comparison"
               rows={rows}
+              rowKey="segment" selectedKey={selected}
               columns={[
                 { key: "segment", label: "Segment" },
                 {
@@ -66,6 +71,7 @@ export default function CustomerSegments({ segments }) {
                 },
               ]}
             />
+            {selected && <p className="selection-summary">{selected} highlighted in the exact-value comparison.</p>}
             <p className="footnote">
               KMeans groups standardized log-transformed RFM behavior. Segment
               names are descriptive, ordered by monetary value. This is not a

@@ -161,8 +161,7 @@ test("AI analyst sends a real request and displays cited tool results", async ({
     body.answer
       .replaceAll(/\[T(\d+)\]/g, "T$1")
       .replaceAll("**", "")
-      .replaceAll("`", "")
-      .replaceAll("_", " "),
+      .replace(/`([^`]+)`/g, (_, content) => content.replaceAll("_", " ")),
     { useInnerText: true },
   );
   const policy = body.evidence.find(
@@ -403,8 +402,9 @@ test("date validation, empty results, loading and recoverable API errors", async
   });
   await page.getByRole("button", { name: "Reset filters" }).click();
   await expect(
-    page.getByRole("status", { name: "Business metrics", exact: true }),
+    page.getByText("Updating selection · previous results shown", { exact: true }).first(),
   ).toBeVisible();
+  await expect(page.getByTestId("revenue-value")).toHaveText(inr(0));
   release();
   await expect(page.getByRole("alert")).toContainText(
     "Unable to load business metrics",

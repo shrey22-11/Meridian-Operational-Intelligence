@@ -106,7 +106,7 @@ export default function Shell({ page, health, onRefresh, children }) {
           />
           <div>
             {health.data
-              ? "Local environment"
+              ? "Data connected"
               : health.loading
                 ? "Connecting to data"
                 : "Service unavailable"}
@@ -170,7 +170,7 @@ export default function Shell({ page, health, onRefresh, children }) {
           <span>
             {health.data
               ? `Synthetic data · ${dateLabel(health.data.snapshot)}`
-              : "Local analytics workspace"}
+              : "Operational intelligence workspace"}
           </span>
         </footer>
       </div>
@@ -196,7 +196,7 @@ export default function Shell({ page, health, onRefresh, children }) {
         <p className="muted">
           AI-Driven Operational Intelligence
           <br />
-          Local portfolio workspace
+          Synthetic-data portfolio workspace
         </p>
       </dialog>
     </div>

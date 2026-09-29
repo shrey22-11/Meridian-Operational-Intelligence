@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { money, sum, number, percent } from "../../lib/format";
 import { Section, Resource } from "../../components/UI";
 import DataTable from "../../components/DataTable";
 import Filters from "../../components/Filters";
+import RevenueBridge from "../../components/RevenueBridge";
 import { CategoryChart } from "../../components/Charts";
 
 export default function BusinessPerformance({
@@ -11,6 +13,7 @@ export default function BusinessPerformance({
   analytics,
   bridge,
 }) {
+  const [selectedRegion, setSelectedRegion] = useState(null);
   return (
     <>
       <Filters
@@ -18,7 +21,7 @@ export default function BusinessPerformance({
         onChange={setFilters}
         snapshot={health?.snapshot}
       />
-      <div className="analysis-columns">
+      <div className="analysis-columns performance-comparison">
         <Section
           title="Which categories contribute?"
           description="Net booked revenue · selected reporting period"
@@ -33,8 +36,9 @@ export default function BusinessPerformance({
         >
           <Resource resource={analytics} label="Regional comparisons">
             {(data) => (
-              <DataTable
+              <><DataTable
                 caption="Regional performance comparison"
+                rowKey="region" rowLabel="Inspect region" selectedKey={selectedRegion} onRowSelect={(row) => setSelectedRegion(row.region)}
                 rows={data.regions}
                 emptyTitle="No regions have activity for this selection"
                 columns={[
@@ -58,7 +62,7 @@ export default function BusinessPerformance({
                     render: percent,
                   },
                 ]}
-              />
+              />{selectedRegion && data.regions.find((row) => row.region === selectedRegion) && <p className="selection-summary">{selectedRegion} selected · {money(data.regions.find((row) => row.region === selectedRegion).revenue)} booked revenue in the reporting period.</p>}</>
             )}
           </Resource>
         </Section>
@@ -70,6 +74,7 @@ export default function BusinessPerformance({
         <Resource resource={bridge} label="Monthly revenue bridge">
           {(data) => (
             <>
+              <RevenueBridge data={data} />
               <div className="bridge-summary">
                 <div>
                   <span className="metric-label">
